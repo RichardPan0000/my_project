@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="欧洲 PV 日前预测精度首轮分析：共同站点日模型对比、低分日期、覆盖异常与数据口径。">
+  <title>欧洲 PV 日前预测精度｜Sigen AI Book</title>
+  <link rel="stylesheet" href="assets/pv-accuracy.css">
+  <script src="assets/pv-accuracy.js" defer></script>
+</head>
+<body>
+  <header class="site-header wrap">
+    <a class="wordmark" href="index.html">Sigen AI Book</a>
+    <nav aria-label="报告目录">
+      <a href="#compare">模型对比</a>
+      <a href="#anomaly">异常日期</a>
+      <a href="#method">统计口径</a>
+    </nav>
+    <a class="header-report" href="worklog/pv-forecast-audit-20261031/accuracy-report-20261031.md">原始报告</a>
+  </header>
+
+  <main>
+    <section class="hero wrap" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <h1 id="page-title">欧洲 PV<br>日前预测精度</h1>
+        <p>基于欧洲 StarRocks 站点精度表的首轮分析。聚焦 2026 年 10 月的模型比较、低分时段与数据覆盖。</p>
+        <a class="primary-action" href="#compare">查看模型对比</a>
+      </div>
+      <div class="hero-figure" aria-label="日前最终结果在共同站点日上的表内 RMSE 评分均值为 0.8471">
+        <div class="sun-disc">
+          <span class="sun-value">0.8471</span>
+          <span class="sun-caption">日前最终结果<br>表内 RMSE 评分均值</span>
+        </div>
+      </div>
+      <p class="hero-caveat">这是 <code>rmse_acc_1hour</code> 的表内均值。评分公式尚未核实，不能读作“84.71% 准确率”。</p>
+    </section>
+
+    <section class="sample-band" aria-labelledby="sample-title">
+      <div class="wrap sample-inner">
+        <h2 id="sample-title">同一批站点日，<br>才可直接比较</h2>
+        <div class="sample-number"><strong>942,705</strong><span>四模型共同覆盖的站点日</span></div>
+        <div class="sample-side"><strong>47,487</strong><span>个站点</span><p>目标日期：10 月 1 日至 23 日。每个模型用完全相同的站点日集合，站点日等权。</p></div>
+      </div>
+    </section>
+
+    <section class="section compare wrap" id="compare" aria-labelledby="compare-title">
+      <div class="section-heading">
+        <h2 id="compare-title">TFT 领先，最终结果居次</h2>
+        <p>按最新 <code>record_time</code> 去重后，四个日前模型在共同样本上的平均 <code>rmse_acc_1hour</code> 如下。</p>
+      </div>
+      <figure class="figure figure-wide">
+        <img src="assets/pv-accuracy/model-comparison.png" width="1538" height="736" alt="四模型平均表内 RMSE 评分：TFT 0.8525，日前最终 0.8471，LightGBM 0.8450，TimeXer 0.8279。" loading="lazy">
+        <figcaption>图中横轴从 0.78 起，用于看清模型间差距。分数越高表示表内评分越高。</figcaption>
+      </figure>
+      <div class="metric-demo" data-ui>
+        <div class="metric-intro">
+          <h3>切换比较指标</h3>
+          <p>共同样本不变；每次只比较一种表内指标。</p>
+          <div class="metric-buttons" role="group" aria-label="选择指标">
+            <button type="button" class="is-active" data-metric="rmse" aria-pressed="true">RMSE 评分</button>
+            <button type="button" data-metric="mape" aria-pressed="false">MAPE 评分</button>
+            <button type="button" data-metric="mae" aria-pressed="false">MAE</button>
+          </div>
+        </div>
+        <div class="metric-result" aria-live="polite">
+          <p class="metric-note" id="metric-note">表内评分，越高越好；公式仍待核实。</p>
+          <div id="metric-bars" class="metric-bars">
+            <div class="metric-row"><span>TFT</span><div class="track"><i style="width:85.25%"></i></div><strong>0.8525</strong></div>
+            <div class="metric-row"><span>日前最终</span><div class="track"><i style="width:84.71%"></i></div><strong>0.8471</strong></div>
+            <div class="metric-row"><span>LightGBM</span><div class="track"><i style="width:84.50%"></i></div><strong>0.8450</strong></div>
+            <div class="metric-row"><span>TimeXer</span><div class="track"><i style="width:82.79%"></i></div><strong>0.8279</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paired" aria-labelledby="paired-title">
+      <div class="wrap paired-layout">
+        <div class="paired-copy">
+          <h2 id="paired-title">最终结果与 TFT 大量同分</h2>
+          <p>同一站点日比较，最终结果高于 TFT 的占 15.8%，低于 TFT 的占 20.6%。两者平均分差为 <strong>−0.0054</strong>。</p>
+          <p>同分占 63.6%，可能与最终结果采用 TFT 有关；目前缺少预测曲线或选优日志，尚不能据此确认选中模型。</p>
+        </div>
+        <figure class="figure paired-figure">
+          <img src="assets/pv-accuracy/paired-outcome.png" width="1337" height="442" alt="最终结果与 TFT 比较：高于 148744 个站点日，占 15.8%；同分 599942，占 63.6%；低于 194019，占 20.6%。" loading="lazy">
+          <figcaption>配对比较：148,744 次更高、599,942 次相同、194,019 次更低。</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section anomaly wrap" id="anomaly" aria-labelledby="anomaly-title">
+      <div class="section-heading">
+        <h2 id="anomaly-title">10 月 21 日是低分点</h2>
+        <p>日前最终结果的日均表内 RMSE 评分在 10 月 20 至 22 日明显走低，23 日回升。下一步需要按站点、时区、天气格点和预报版本定位原因。</p>
+      </div>
+      <div class="figure-pair">
+        <figure class="figure">
+          <img src="assets/pv-accuracy/low-score-window.png" width="1427" height="736" alt="日前最终结果日均评分：10月20日 0.7964，21日 0.7486，22日 0.7950，23日 0.8554。" loading="lazy">
+          <figcaption>21 日均分 0.7486；当天 4,712 个站点的评分低于 0.4。</figcaption>
+        </figure>
+        <aside class="anomaly-note">
+          <h3>天气抽查没有给出直接原因</h3>
+          <p>历史天气预报表包含 6 个 NWP 来源。抽查日期里，<code>bom</code> 的短波辐射与法向直射辐照字段均不符合现有代码的有效范围；另外 4 个主要来源未见对应字段无效记录。</p>
+          <p>10 月 20 至 22 日四个主要来源的行数和格点数没有整体骤降，不能仅凭此把低分归因于 NWP 缺失。</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section coverage" aria-labelledby="coverage-title">
+      <div class="wrap coverage-layout">
+        <div class="coverage-copy">
+          <h2 id="coverage-title">最近日期的覆盖不完整</h2>
+          <p>日前最终结果此前通常覆盖约 4.3 万至 4.6 万个站点。10 月 24、27、30 日显著偏少，所以不能把“最新一天”的均分直接看作欧洲整体水平。</p>
+          <p>10 月 29 日覆盖相对较广：四模型共同覆盖 38,509 站，TFT、LightGBM、日前最终、TimeXer 的平均评分依次为 0.8474、0.8385、0.8381、0.8088。单日结果不替代长期对比。</p>
+          <p>10 月 25、26、28 日还存在重复写入。报告按 <code>dt + station_id + model_name</code> 取最新 <code>record_time</code>，避免重复记录放大某一天的权重。</p>
+        </div>
+        <figure class="figure">
+          <img src="assets/pv-accuracy/coverage.png" width="1413" height="736" alt="日前最终结果站点覆盖：10月24日25424站，27日2275站，29日41984站，30日1站；此前常见为约43000至46000站。" loading="lazy">
+          <figcaption>图中日期并不连续。浅色带表示此前常见的约 4.3 万至 4.6 万站。</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section method wrap" id="method" aria-labelledby="method-title">
+      <h2 id="method-title">这些结论如何得到</h2>
+      <div class="method-grid">
+        <div><strong>数据源</strong><p>欧洲 StarRocks 的 <code>sigen_ai.pv_model_accuracy_result</code>；天气抽查来自 <code>sigen_ai.weather_info_historical_forecast</code>。</p></div>
+        <div><strong>过滤</strong><p>只取 <code>predict_type=1</code> 的 PV 记录。日前最终结果使用 <code>pv-dayahead-select-best-7</code>，与通用 <code>select_best_7</code> 分开。</p></div>
+        <div><strong>去重</strong><p>同一日期、站点、模型按 <code>record_time DESC</code> 只留最新一条。</p></div>
+        <div><strong>可比性</strong><p>主比较只用 10 月 1 至 23 日四模型共同覆盖的 942,705 个站点日，并对站点日等权平均。</p></div>
+      </div>
+    </section>
+
+    <section class="section questions" aria-labelledby="questions-title">
+      <div class="wrap questions-layout">
+        <h2 id="questions-title">还不能下的结论</h2>
+        <div class="question-list">
+          <details name="questions"><summary>0.85 能叫作 85% 准确率吗？</summary><p>不能。<code>rmse_acc_1hour</code> 的计算公式和有效点规则尚未核实，页面只按表内评分比较。<code>mae_1hour</code> 的业务单位也待确认。</p></details>
+          <details name="questions"><summary>最终结果是否真的选中了 TFT？</summary><p>大量同分提供了线索，但评分相同并不能证明预测曲线相同。需查站点级预测曲线和选优日志。</p></details>
+          <details name="questions"><summary>10 月 21 日低分是天气造成的吗？</summary><p>现在没有证据支持单一原因。需进一步关联站点、天气格点、预报版本、时间对齐和特殊覆盖路径。</p></details>
+          <details name="questions"><summary>代码中的模型和线上一致吗？</summary><p>当前可读代码仓库的本地 <code>main</code> 停在 2026 年 4 月 23 日；其候选模型配置与欧洲精度表中的模型列表不一致。实际欧洲部署版本仍待确认。</p></details>
+          <details name="questions"><summary>能用 10 月 30 日评估整体效果吗？</summary><p>不能。该日日前最终结果只有 1 个站点；近期多日覆盖异常。必须先核实写入完整性，再谈近期整体表现。</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div class="footer-disc" aria-hidden="true"></div>
+      <div>
+        <strong>PV 精度首轮分析</strong>
+        <p>数据查询日期：2026 年 10 月 31 日。网页是首轮分析快照，不自动更新。</p>
+        <a href="worklog/pv-forecast-audit-20261031/accuracy-report-20261031.md">查看完整报告与 SQL</a>
+      </div>
+      <a class="back-top" href="#page-title">返回顶部</a>
+    </div>
+  </footer>
+</body>
+</html>
