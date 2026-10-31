@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sigen AI Book</title>
+  <style>
+    :root {
+      --paper: #f6f3ee;
+      --page: #fffdf8;
+      --ink: #202124;
+      --muted: #667085;
+      --line: #d8d2c7;
+      --nav: #202124;
+      --blue: #1d5fd1;
+      --green: #177245;
+      --purple: #5b2aa0;
+      --red: #bd2b2b;
+      --amber: #9a5b00;
+      --soft-blue: #eef5ff;
+      --soft-green: #edf8ef;
+      --soft-purple: #f5f0ff;
+      --soft-red: #fff0ef;
+      --soft-amber: #fff6e6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      line-height: 1.62;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 22px 18px;
+      color: #f7f7f7;
+      background: var(--nav);
+      border-right: 1px solid #111;
+    }
+
+    .brand {
+      padding-bottom: 16px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .brand h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 0;
+      color: #c7c7c7;
+      font-size: 13px;
+    }
+
+    nav h2 {
+      margin: 20px 0 8px;
+      color: #bdbdbd;
+      font-size: 12px;
+      letter-spacing: 0;
+    }
+
+    .toc-section {
+      margin-top: 12px;
+    }
+
+    .toc-section > summary {
+      display: flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 9px;
+      border-radius: 6px;
+      color: #d9d9d9;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .toc-section > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .toc-section > summary::before {
+      content: ">";
+      width: 16px;
+      color: #9f9f9f;
+    }
+
+    .toc-section[open] > summary::before {
+      content: "v";
+    }
+
+    .toc-section > summary:hover {
+      background: #2f2f2f;
+    }
+
+    .toc-subsection {
+      margin: 4px 0 6px;
+    }
+
+    .toc-subsection > summary {
+      display: flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 9px 6px 18px;
+      border-radius: 6px;
+      color: #d6d6d6;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .toc-subsection > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .toc-subsection > summary::before {
+      content: ">";
+      width: 16px;
+      color: #9f9f9f;
+    }
+
+    .toc-subsection[open] > summary::before {
+      content: "v";
+    }
+
+    .toc-subsection > summary:hover {
+      background: #2f2f2f;
+    }
+
+    .toc-subsection button {
+      padding-left: 34px;
+      font-size: 13px;
+    }
+
+    nav button {
+      display: block;
+      width: 100%;
+      margin: 2px 0;
+      padding: 8px 9px;
+      border: 0;
+      border-radius: 6px;
+      color: #f3f3f3;
+      background: transparent;
+      text-align: left;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    nav button:hover,
+    nav button.active { background: #343434; }
+
+    nav a.toc-report {
+      display: block;
+      margin: 2px 0;
+      padding: 8px 9px;
+      border-radius: 6px;
+      color: #f3f3f3;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    nav a.toc-report:hover { background: #343434; }
+
+    main {
+      min-width: 0;
+      padding: 28px 32px 40px;
+    }
+
+    .reader {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf0;
+    }
+
+    .toolbar button,
+    .page-actions a {
+      min-height: 36px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      background: #fff;
+      font: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .toolbar button:hover,
+    .page-actions a:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .toolbar button:disabled {
+      color: #a0a0a0;
+      cursor: not-allowed;
+    }
+
+    .counter {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .page {
+      display: none;
+      min-height: 690px;
+      padding: 34px 42px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--page);
+      box-shadow: 0 18px 45px rgba(32, 33, 36, 0.08);
+    }
+
+    .page.active { display: block; }
+
+    .kicker {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 8px 0 14px;
+      font-size: 42px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 8px 0 14px;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 20px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p { margin: 8px 0; }
+
+    .lead {
+      max-width: 870px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 22px;
+    }
+
+    li { margin: 4px 0; }
+
+    .chapter-list,
+    .cards-3,
+    .metric-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .chapter-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card,
+    .metric {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .card strong,
+    .metric strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .card span,
+    .metric span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .metric b {
+      display: block;
+      margin-top: 2px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .figure {
+      margin: 20px 0 12px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .figure-title {
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .flow,
+    .lane {
+      display: grid;
+      gap: 10px;
+    }
+
+    .flow { grid-template-columns: repeat(5, minmax(120px, 1fr)); }
+    .flow.three { grid-template-columns: repeat(3, minmax(150px, 1fr)); }
+    .flow.four { grid-template-columns: repeat(4, minmax(130px, 1fr)); }
+    .flow.six { grid-template-columns: repeat(6, minmax(104px, 1fr)); }
+    .lane { grid-template-columns: 150px repeat(5, minmax(110px, 1fr)); }
+    .lane.four { grid-template-columns: 150px repeat(4, minmax(120px, 1fr)); }
+
+    .step,
+    .lane-label {
+      min-height: 84px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .lane-label {
+      color: var(--muted);
+      font-weight: 700;
+      background: #f1f3f5;
+    }
+
+    .step b {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .step span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .blue { border-color: #c6dcff; background: var(--soft-blue); }
+    .green { border-color: #bfe5c8; background: var(--soft-green); }
+    .purple { border-color: #d8c8ff; background: var(--soft-purple); }
+    .red { border-color: #ffc9c4; background: var(--soft-red); }
+    .amber { border-color: #ffe0a3; background: var(--soft-amber); }
+
+    table {
+      width: 100%;
+      margin: 16px 0;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th { background: #f1f3f5; }
+    tr:last-child td { border-bottom: 0; }
+
+    code {
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #eef0f2;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92em;
+    }
+
+    .arch-img {
+      width: 100%;
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .note {
+      margin: 14px 0;
+      padding: 12px 14px;
+      border-left: 4px solid var(--blue);
+      background: var(--soft-blue);
+    }
+
+    .page-actions {
+      margin-top: 24px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 980px) {
+      .layout { display: block; }
+      aside { position: static; height: auto; }
+      main { padding: 16px; }
+      .page { min-height: auto; padding: 24px 18px; }
+      h1 { font-size: 32px; }
+      h2 { font-size: 26px; }
+      .flow,
+      .flow.three,
+      .flow.four,
+      .flow.six,
+      .lane,
+      .lane.four,
+      .chapter-list,
+      .cards-3,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <h1>Sigen AI Book</h1>
+        <p>分页版，每页 5 分钟内读完</p>
+      </div>
+      <nav id="toc">
+        <h2>总览</h2>
+        <button data-page="cover">封面</button>
+        <button data-page="reading">阅读规则</button>
+
+        <details class="toc-section" open>
+          <summary>第1章：LOAD预测</summary>
+          <button data-page="load-intro">第1章导语</button>
+          <button data-page="load-business">1.1 业务架构</button>
+          <button data-page="load-data">1.2 数据和特征</button>
+          <button data-page="load-training">1.3 大模型训练</button>
+          <button data-page="load-inference">1.4 推理链路</button>
+          <button data-page="load-holiday">1.5 节假日处理</button>
+          <button data-page="load-badcase">1.6 bad case 统计</button>
+          <button data-page="load-weather">1.7 天气归因</button>
+          <button data-page="load-lessons">1.8 lesson</button>
+          <button data-page="load-future">1.9 未来方向</button>
+          <button data-page="load-casebook">1.10 案例册</button>
+        </details>
+
+        <details class="toc-section" open>
+          <summary>第2章：PV预测</summary>
+          <button data-page="pv-intro">第2章导语</button>
+          <a class="toc-report" href="pv-accuracy-20261031.html">欧洲 PV 精度分析</a>
+          <button data-page="pv-schedule">2.1 业务架构</button>
+          <button data-page="pv-data">2.2 数据和 NWP</button>
+          <button data-page="pv-training">2.3 训练口径</button>
+          <details class="toc-subsection" open>
+            <summary>2.4 三模型架构</summary>
+            <button data-page="pv-models">2.4 小节导语</button>
+            <button data-page="pv-timexer">2.4.1 TimeXer</button>
+            <button data-page="pv-tft">2.4.2 TFT</button>
+            <button data-page="pv-lgbm">2.4.3 LightGBM</button>
+            <button data-page="pv-tft-figure">2.4.4 参考图</button>
+          </details>
+          <button data-page="pv-select">2.5 推理和选优</button>
+          <button data-page="pv-intraday">2.6 日内 11:25</button>
+          <button data-page="pv-snow">2.7 积雪/融雪</button>
+          <button data-page="pv-clipping">2.8 clipping</button>
+          <button data-page="pv-badcase">2.9 bad case</button>
+          <button data-page="pv-lessons">2.10 lesson</button>
+          <button data-page="pv-future">2.11 未来方向</button>
+          <button data-page="pv-casebook">2.12 案例册</button>
+        </details>
+
+        <details class="toc-section" open>
+          <summary>第3章：AI算法平台</summary>
+          <button data-page="platform-intro">第3章导语</button>
+          <button data-page="platform-functions">3.1 平台功能</button>
+          <button data-page="platform-data">3.2 数据工厂</button>
+          <button data-page="platform-experiment">3.3 实验自动化</button>
+          <button data-page="platform-mlflow">3.4 MLflow 和榜单</button>
+          <button data-page="platform-assets">3.5 模型资产</button>
+          <button data-page="platform-scale">3.6 多 Pod 推理</button>
+          <button data-page="platform-limit">3.7 自动化上限</button>
+          <button data-page="platform-gaps">3.8 当前缺口</button>
+          <button data-page="platform-maturity">3.9 自动化成熟度</button>
+        </details>
+        <button data-page="sources">来源索引</button>
+      </nav>
+    </aside>
+
+    <main>
+      <div class="reader">
+        <div class="toolbar">
+          <button id="prevTop">上一页</button>
+          <div class="counter" id="counter"></div>
+          <button id="nextTop">下一页</button>
+        </div>
+
+        <article class="page" id="cover" data-title="封面">
+          <div class="kicker">Sigen AI Book</div>
+          <h1>PV / LOAD / AI算法平台手册</h1>
+          <p class="lead">结论：这本书现在按三章写成可翻页手册。第1章讲 LOAD 大模型训练、推理和业务架构；第2章讲 PV 三模型、积雪、clipping 和踩坑；第3章讲 AI 算法平台和自动化上限。</p>
+          <div class="figure">
+            <div class="figure-title">全书主线</div>
+            <div class="flow">
+              <div class="step amber"><b>LOAD预测</b><span>训练、推理、节假日、坏站归因</span></div>
+              <div class="step purple"><b>PV预测</b><span>三模型、天气、积雪、clipping</span></div>
+              <div class="step blue"><b>AI算法平台</b><span>数据、实验、榜单、模型资产</span></div>
+              <div class="step green"><b>经验沉淀</b><span>bitter lesson 和 happy lesson</span></div>
+              <div class="step red"><b>上线判断</b><span>指标、吞吐、回滚、自动化边界</span></div>
+            </div>
+          </div>
+          <div class="page-actions">
+            <a href="docs/index.md">Markdown 总目录</a>
+          </div>
+        </article>
+
+        <article class="page" id="reading" data-title="阅读规则">
+          <div class="kicker">阅读规则</div>
+          <h2>一页只讲一个问题</h2>
+          <p class="lead">结论：这不是长滚动博客。左侧目录切页，上一页/下一页翻页，每页控制在 5 分钟内读完。</p>
+          <ul>
+            <li>章节首页只放导语和本章小节。</li>
+            <li>正文页只讲一个主题。</li>
+            <li>模型图只画主线，不画交叉线。</li>
+            <li>经验页必须分清 bitter lesson 和 happy lesson。</li>
+            <li>生产口径、实验口径、排查口径不能混写。</li>
+          </ul>
+        </article>
+
+        <article class="page" id="load-intro" data-title="LOAD 导语和小节">
+          <div class="kicker">第1章：LOAD预测</div>
+          <h2>本章导语</h2>
+          <p class="lead">LOAD 预测不是只训练一个模型。它是历史负荷、日历节假日、多时区调度、批量推理、模型选优和 fallback 串起来的生产系统。</p>
+          <div class="chapter-list">
+            <div class="card"><strong>1.1 业务架构</strong><span>服务怎么收任务、跑预测、写结果。</span></div>
+            <div class="card"><strong>1.2 数据和特征</strong><span>5 分钟时间轴、单位、天气和画像。</span></div>
+            <div class="card"><strong>1.3 大模型训练</strong><span>2016 点历史输入，用户行为建模。</span></div>
+            <div class="card"><strong>1.4 推理链路</strong><span>576 点输出、模型锁、Kafka。</span></div>
+            <div class="card"><strong>1.5 节假日处理</strong><span>holiday mask、holiday_mode、DST/WST。</span></div>
+            <div class="card"><strong>1.6 bad case</strong><span>差站统计、选优链路、基础模型失效。</span></div>
+            <div class="card"><strong>1.7 天气归因</strong><span>天气变化只能做线索，不能直接定责。</span></div>
+            <div class="card"><strong>1.8 lesson</strong><span>bitter lesson 和 happy lesson。</span></div>
+            <div class="card"><strong>1.9 未来方向</strong><span>统一口径、台账、自动回放。</span></div>
+            <div class="card"><strong>1.10 案例册</strong><span>按真实坏站材料写排查口径。</span></div>
+          </div>
+        </article>
+
+        <article class="page" id="load-business" data-title="1.1 LOAD 业务架构">
+          <div class="kicker">1.1 / LOAD预测 / 业务架构</div>
+          <h2>1.1 LOAD 是异步预测系统</h2>
+          <p class="lead">结论：LOAD 的 API call 只触发任务。算法服务内部查站点、算本地日期、批量推理，结果继续写 Kafka / Redis / DB。</p>
+          <div class="figure">
+            <div class="figure-title">LOAD 业务架构图</div>
+            <img class="arch-img" src="assets/images/load-business-architecture.svg" alt="LOAD 预测业务架构图">
+          </div>
+          <p>新入口是 <code>POST /load_prediction_station</code>，只传 <code>station_id</code>。旧的 <code>/load_prediction_holiday</code> 保留节假日语义，不要混成通用预测入口。</p>
+          <div class="page-actions">
+            <a href="assets/images/load-business-architecture.svg">打开 LOAD 业务架构图</a>
+          </div>
+        </article>
+
+        <article class="page" id="load-data" data-title="1.2 LOAD 数据和特征">
+          <div class="kicker">1.2 / LOAD预测 / 数据和特征</div>
+          <h2>1.2 先统一口径，再谈模型</h2>
+          <p class="lead">结论：LOAD 数据处理要围绕 5 分钟时间轴、单位口径和异常标签展开。</p>
+          <table>
+            <thead><tr><th>数据项</th><th>书里固定的口径</th></tr></thead>
+            <tbody>
+              <tr><td>时间轴</td><td>补齐完整 5 分钟索引，按本地时区切日。</td></tr>
+              <tr><td>负荷值</td><td>负值置 0，预测值要和真实表单位一致。</td></tr>
+              <tr><td>缺失</td><td>短缺口插值，长缺口打质量标签。</td></tr>
+              <tr><td>日历</td><td>小时、quarter、星期、工作日、节假日。</td></tr>
+              <tr><td>天气</td><td>温度、体感温度、湿度、降水等只作为归因证据，不能直接甩锅。</td></tr>
+            </tbody>
+          </table>
+          <div class="note">`station_id` 必须按字符串处理，不能转 int；14 位站点 ID 在本地 pandas/Windows 环境里有溢出风险。</div>
+        </article>
+
+        <article class="page" id="load-training" data-title="1.3 LOAD 大模型训练">
+          <div class="kicker">1.3 / LOAD预测 / 大模型训练</div>
+          <h2>1.3 LOAD 模型学的是用户行为</h2>
+          <p class="lead">结论：全局模型学共性，用户画像表达个性，fallback 处理冷启动和缺数据。</p>
+          <div class="figure">
+            <div class="figure-title">LOAD 训练输入</div>
+            <div class="flow four">
+              <div class="step amber"><b>历史 Load</b><span>用户自己的用电节奏</span></div>
+              <div class="step green"><b>日历</b><span>小时、星期、节假日</span></div>
+              <div class="step blue"><b>天气</b><span>温度和温控负荷</span></div>
+              <div class="step purple"><b>用户画像</b><span>国家、容量、站点类型</span></div>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>模型</th><th>定位</th></tr></thead>
+            <tbody>
+              <tr><td>DAG</td><td>研究协变量关系和因果约束。</td></tr>
+              <tr><td>TimeXer</td><td>高容量时序大模型。</td></tr>
+              <tr><td>DLinear</td><td>强基线，吞吐高，便于兜底。</td></tr>
+              <tr><td>XGBoost</td><td>特征工程强，解释和回滚简单。</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="page" id="load-inference" data-title="1.4 LOAD 推理链路">
+          <div class="kicker">1.4 / LOAD预测 / 推理链路</div>
+          <h2>1.4 推理重点是批量和稳定</h2>
+          <p class="lead">结论：LOAD 推理不是一次 forward，而是取数、构造输入、模型锁、输出写入和选优的整条链路。</p>
+          <table>
+            <thead><tr><th>项目</th><th>口径</th></tr></thead>
+            <tbody>
+              <tr><td>时间粒度</td><td>5 分钟</td></tr>
+              <tr><td>每天点数</td><td>288</td></tr>
+              <tr><td>历史窗口</td><td>2016 点，约 7 天</td></tr>
+              <tr><td>预测窗口</td><td>576 点，约 2 天</td></tr>
+              <tr><td>深度模型输入</td><td><code>[n_stations, 2016, 2]</code></td></tr>
+              <tr><td>深度模型输出</td><td><code>[n_stations, 576, 1]</code></td></tr>
+            </tbody>
+          </table>
+          <p>DLinear / TimeXer 推理要加锁；XGBoost 权重下载失败要有本地 fallback；Kafka 写入失败要能重试和追踪。</p>
+        </article>
+
+        <article class="page" id="load-holiday" data-title="1.5 LOAD 节假日处理">
+          <div class="kicker">1.5 / LOAD预测 / 节假日处理</div>
+          <h2>1.5 节假日样本要先隔离</h2>
+          <p class="lead">结论：节假日模式不能直接混进正常负荷模式，否则模型会把异常行为学成规律。</p>
+          <div class="figure">
+            <div class="figure-title">节假日处理链路</div>
+            <div class="flow">
+              <div class="step amber"><b>操作日志</b><span>读 holiday 开关记录</span></div>
+              <div class="step green"><b>时间 mask</b><span>生成 5 分钟假期片段</span></div>
+              <div class="step purple"><b>过滤数据</b><span>隔离假期模式</span></div>
+              <div class="step blue"><b>正常预测</b><span>用干净窗口推理</span></div>
+              <div class="step red"><b>点数修正</b><span>DST/WST 输出处理</span></div>
+            </div>
+          </div>
+          <div class="note">硬坑：`holiday_mode` 文档里 on/off 语义不一致。第一优先级是统一 API、调度配置和内部判断。</div>
+        </article>
+
+        <article class="page" id="load-badcase" data-title="1.6 LOAD bad case 统计">
+          <div class="kicker">1.6 / LOAD预测 / bad case</div>
+          <h2>1.6 坏站先分责任域</h2>
+          <p class="lead">结论：bad case 不能只说模型差，要先判断是选优链路、基础模型、数据口径还是真实负荷变化。</p>
+          <div class="metric-grid">
+            <div class="metric"><strong>上周差站</strong><b>11301</b><span>2026-05-18 到 2026-05-24</span></div>
+            <div class="metric"><strong>上上周差站</strong><b>7736</b><span>净增 3565</span></div>
+            <div class="metric"><strong>选优链路风险</strong><b>44.6%</b><span>1000 站抽样主因第一</span></div>
+            <div class="metric"><strong>基础模型整体低</strong><b>58.3%</b><span>坏站日口径</span></div>
+          </div>
+          <table>
+            <thead><tr><th>优先级</th><th>先查什么</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>基础模型达标但 `select_best_7` 不达标：查选优窗口、候选过滤、Redis/Kafka。</td></tr>
+              <tr><td>2</td><td>基础模型都差：按国家、时区、真实负荷突变、节假日聚类。</td></tr>
+              <tr><td>3</td><td>最终整体偏低：先核对单位，不能直接定责。</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="page" id="load-weather" data-title="1.7 LOAD 天气归因">
+          <div class="kicker">1.7 / LOAD预测 / 天气归因</div>
+          <h2>1.7 天气变化不是自动根因</h2>
+          <p class="lead">结论：欧洲天气确实有明显周变化，但坏站小样本不支持“升温就是主因”。</p>
+          <table>
+            <thead><tr><th>检查项</th><th>结论</th></tr></thead>
+            <tbody>
+              <tr><td>欧洲整体天气</td><td>上周温度比上上周高约 5.50 摄氏度，体感高约 7.08 摄氏度。</td></tr>
+              <tr><td>短波辐射</td><td>整体升高约 17.55%。</td></tr>
+              <tr><td>低分站小样本</td><td>升温幅度和准确率下降没有明显相关性。</td></tr>
+              <tr><td>正确做法</td><td>把天气变化按国家、模型、站点、坏站日对齐后再定责。</td></tr>
+            </tbody>
+          </table>
+          <div class="note">说人话：天气可以是线索，不能是借口。归因要回到站点和预测日。</div>
+        </article>
+
+        <article class="page" id="load-lessons" data-title="1.8 LOAD lesson">
+          <div class="kicker">1.8 / LOAD预测 / lesson</div>
+          <h2>1.8 lesson 要能指导上线</h2>
+          <div class="chapter-list">
+            <div class="card"><strong>Bitter lesson</strong><span>holiday_mode 不统一；深度模型并发要加锁；指标延迟落库会误导周统计。</span></div>
+            <div class="card"><strong>Bitter lesson</strong><span>station_id 转 int、单位没核对、DST/WST 后补，都会把排查带偏。</span></div>
+            <div class="card"><strong>Happy lesson</strong><span>异步接口、Kafka 输出、多模型 fallback，让系统有可恢复空间。</span></div>
+            <div class="card"><strong>Happy lesson</strong><span>坏站分层抽样比随机看曲线有效，能快速区分选优链路和基础模型问题。</span></div>
+          </div>
+        </article>
+
+        <article class="page" id="load-future" data-title="1.9 LOAD 未来方向">
+          <div class="kicker">1.9 / LOAD预测 / 未来方向</div>
+          <h2>1.9 下一版先补可复盘能力</h2>
+          <p class="lead">结论：LOAD 下一步不是盲目换模型，而是先把口径、台账和回放工具补齐。</p>
+          <div class="chapter-list">
+            <div class="card"><strong>统一口径</strong><span>`holiday_mode`、Load 单位、预测值和真实值聚合方式。</span></div>
+            <div class="card"><strong>坏站台账</strong><span>站点、日期、现象、根因、动作、是否复发。</span></div>
+            <div class="card"><strong>选优回放</strong><span>候选模型、历史窗口、过滤原因、最终写入值一次输出。</span></div>
+            <div class="card"><strong>天气归因</strong><span>区域天气只能做线索，最终要落到站点和坏日。</span></div>
+          </div>
+          <div class="page-actions">
+            <a href="docs/01_load_forecasting/README.md">LOAD 章 Markdown</a>
+            <a href="docs/01_load_forecasting/load_book_sections.md">第1章完整小节</a>
+            <a href="docs/01_load_forecasting/load_casebook.md">LOAD 案例册</a>
+          </div>
+        </article>
+
+        <article class="page" id="load-casebook" data-title="1.10 LOAD 案例册">
+          <div class="kicker">1.10 / LOAD预测 / 案例册</div>
+          <h2>1.10 坏站要按责任域拆</h2>
+          <p class="lead">结论：LOAD bad case 不是看一张曲线就下结论。先分清选优链路、基础模型、单位口径、真实负荷变化，最后才谈换模型。</p>
+          <div class="metric-grid">
+            <div class="metric"><strong>差站口径</strong><b>mape&lt;0.4</b><span>`select_best_7 + predict_type=2`</span></div>
+            <div class="metric"><strong>净增差站</strong><b>3565</b><span>2026-05-18 周对比上周</span></div>
+            <div class="metric"><strong>选优风险</strong><b>44.6%</b><span>1000 站抽样主因第一</span></div>
+            <div class="metric"><strong>最终链路坏</strong><b>41.7%</b><span>基础模型好但最终差</span></div>
+          </div>
+          <table>
+            <thead><tr><th>案例</th><th>怎么判</th><th>下一步</th></tr></thead>
+            <tbody>
+              <tr><td>欧洲差站暴增</td><td>先看 `select_best_7`，再看基础模型是否达标。</td><td>回放选优窗口、候选过滤、Redis/Kafka 写入。</td></tr>
+              <tr><td>天气升温</td><td>温度升高只能做线索，不能直接定责。</td><td>按国家、站点、坏日和模型对齐验证。</td></tr>
+              <tr><td>最终预测整体偏低</td><td>先核对 `predicted_value` 和真实负荷单位。</td><td>统一到 `filtered_load_power / 60 * 5` 后再判断。</td></tr>
+            </tbody>
+          </table>
+          <div class="page-actions">
+            <a href="docs/01_load_forecasting/load_casebook.md">完整 LOAD 案例册</a>
+          </div>
+        </article>
+
+        <article class="page" id="pv-intro" data-title="PV 导语和小节">
+          <div class="kicker">第2章：PV预测</div>
+          <h2>本章导语</h2>
+          <p class="lead">PV 预测是天气驱动的生产系统。主线是多源 NWP、历史 PV、三模型、`select_best_7`，再加积雪、融雪、clipping 和 EC 覆盖。</p>
+          <div class="chapter-list">
+            <div class="card"><strong>2.1 业务架构</strong><span>API call、定时调度、三模型、覆盖链路。</span></div>
+            <div class="card"><strong>2.2 数据和 NWP</strong><span>历史 PV、多源天气、缺失剔除。</span></div>
+            <div class="card"><strong>2.3 训练口径</strong><span>strict KPI、mask、预测资产。</span></div>
+            <div class="card"><strong>2.4 三模型架构</strong><span>TimeXer、TFT、LightGBM 分页讲。</span></div>
+            <div class="card"><strong>2.5 推理选优</strong><span>写基础预测，再按近 7 天选优。</span></div>
+            <div class="card"><strong>2.7-2.8 特殊场景</strong><span>积雪/融雪、clipping、EC-only。</span></div>
+            <div class="card"><strong>2.9 bad case</strong><span>NWP、时区、量纲、覆盖顺序。</span></div>
+            <div class="card"><strong>2.10-2.11 lesson 和未来</strong><span>证伪路线、有效路线、下一步。</span></div>
+            <div class="card"><strong>2.12 案例册</strong><span>AUS clipping、NWP、TFT 量纲、日内污染。</span></div>
+          </div>
+        </article>
+
+        <article class="page" id="pv-schedule" data-title="2.1 PV 业务架构">
+          <div class="kicker">2.1 / PV预测 / 业务架构</div>
+          <h2>2.1 PV 是 API call 加定时调度</h2>
+          <p class="lead">结论：PV 新增 <code>POST /pv_prediction_station</code> 后，入口多了 API call，但预测结果仍走异步生产链路。</p>
+          <div class="figure">
+            <div class="figure-title">PV 业务架构图</div>
+            <img class="arch-img" src="assets/images/pv-business-architecture.svg" alt="PV 预测业务架构图">
+          </div>
+          <p>API 只传 <code>station_id</code>，算法服务自己查站点、天气和本地日期。排查时先问：当前结果是基础模型、日前最终值，还是被日内/特殊覆盖后写掉的 <code>select_best_7</code>。</p>
+          <div class="page-actions">
+            <a href="assets/images/pv-business-architecture.svg">打开 PV 业务架构图</a>
+          </div>
+        </article>
+
+        <article class="page" id="pv-data" data-title="2.2 PV 数据和 NWP">
+          <div class="kicker">2.2 / PV预测 / 数据和 NWP</div>
+          <h2>2.2 NWP 对齐决定上限</h2>
+          <p class="lead">结论：PV 没有未来天气就没有高上限；NWP 错配比模型小改更致命。</p>
+          <table>
+            <thead><tr><th>数据</th><th>口径</th></tr></thead>
+            <tbody>
+              <tr><td>历史 PV</td><td>最近 2016 个 5 分钟点，缺失按同刻历史均值、插值、前后填补兜底。</td></tr>
+              <tr><td>TimeXer NWP</td><td>常用 4 源辐照类天气，历史 168 小时 + 未来 48 小时。</td></tr>
+              <tr><td>TFT / LGBM NWP</td><td>raw84，6 个天气源乘 14 个变量。</td></tr>
+              <tr><td>day mask</td><td>夜间置零，基础模型和最终结果口径要一致。</td></tr>
+              <tr><td>缺 NWP</td><td>站点列表、PV 数组、天气数组、mask 必须同步剔除。</td></tr>
+            </tbody>
+          </table>
+          <div class="note">硬坑：不能在精确 NWP miss 后无阈值找最近格点。之前出现过站点拿到错误区域天气的风险。</div>
+        </article>
+
+        <article class="page" id="pv-training" data-title="2.3 PV 训练口径">
+          <div class="kicker">2.3 / PV预测 / 训练口径</div>
+          <h2>2.3 训练口径必须对齐最终 KPI</h2>
+          <p class="lead">结论：训练内置 val loss 只能参考，最终 checkpoint 要按业务 strict 口径选。</p>
+          <table>
+            <thead><tr><th>张量</th><th>形状</th><th>含义</th></tr></thead>
+            <tbody>
+              <tr><td><code>x_pv</code></td><td><code>[B,2016]</code></td><td>历史 7 天 5 分钟 PV。</td></tr>
+              <tr><td><code>y_pv</code></td><td><code>[B,288]</code> 或 <code>[B,576]</code></td><td>未来 1 到 2 天 PV。</td></tr>
+              <tr><td><code>x_wea</code></td><td><code>[B,168,84]</code></td><td>历史小时级多源天气。</td></tr>
+              <tr><td><code>y_wea</code></td><td><code>[B,288,84]</code> 或 <code>[B,48,84]</code></td><td>未来天气。</td></tr>
+            </tbody>
+          </table>
+          <ul>
+            <li>评估固定看 `first_day_288 + full_metric_mask + non_negative_clip + quiet-day`。</li>
+            <li>必须保存 `pred.npy / true.npy / metric_mask.npy`，否则 bad case 只能重跑。</li>
+            <li>DAG 是研究模型池重要候选；当前日前主链三模型是 TimeXer、TFT、LightGBM。</li>
+          </ul>
+        </article>
+
+        <article class="page" id="pv-models" data-title="2.4 PV 三模型架构">
+          <div class="kicker">2.4 / PV预测 / 三模型架构</div>
+          <h2>2.4 三模型架构要放在一个小节里看</h2>
+          <p class="lead">结论：TimeXer、TFT、LightGBM 是同一条日前生产链路里的三个候选模型，应该放在一个小节下分页讲清楚。</p>
+          <div class="chapter-list">
+            <div class="card"><strong>2.4.1 TimeXer</strong><span>长历史 patch + 天气残差，主打容量和形状。</span></div>
+            <div class="card"><strong>2.4.2 TFT</strong><span>source attention + sample context，主打多源天气可信度。</span></div>
+            <div class="card"><strong>2.4.3 LightGBM</strong><span>pointwise 强特征，主打稳定性和解释性。</span></div>
+            <div class="card"><strong>2.4.4 参考图</strong><span>TFT v5 图作为后续画图标准。</span></div>
+          </div>
+          <p>读法：先看这一页理解模型池分工，再翻到后面三页看每个模型的详细架构图。</p>
+        </article>
+
+        <article class="page" id="pv-timexer" data-title="2.4.1 TimeXer 架构">
+          <div class="kicker">2.4.1 / PV预测 / 三模型架构 / TimeXer</div>
+          <h2>2.4.1 TimeXer：长历史 + 天气残差</h2>
+          <p class="lead">结论：TimeXer 把过去 7 天切成小时 patch，再用天气和时间修正预测。</p>
+          <div class="figure">
+            <div class="figure-title">TimeXer 详细架构图</div>
+            <img class="arch-img" src="assets/images/pv-timexer-architecture.svg" alt="TimeXer PV day-ahead 详细架构图">
+          </div>
+          <p>强项：容量高，能吃长历史和未来天气。风险：输入口径一变，生产代码不能硬加载旧模型结构。</p>
+          <div class="page-actions">
+            <a href="assets/images/pv-timexer-architecture.svg">打开 TimeXer 大图</a>
+          </div>
+        </article>
+
+        <article class="page" id="pv-tft" data-title="2.4.2 TFT 架构">
+          <div class="kicker">2.4.2 / PV预测 / 三模型架构 / TFT</div>
+          <h2>2.4.2 TFT v9：先判断哪家天气更可信</h2>
+          <p class="lead">结论：TFT v9 的核心是 source attention、sample context 和历史 PV 连续性增强。</p>
+          <div class="figure">
+            <div class="figure-title">TFT v9 详细架构图</div>
+            <img class="arch-img" src="assets/images/pv-tft-v9-architecture.svg" alt="TFT v9 PV day-ahead 详细架构图">
+          </div>
+          <p>已证明的正向路线：source-attention + weather summary sample context；历史 PV patch 后加轻量 RNN 有小收益。</p>
+          <div class="page-actions">
+            <a href="assets/images/pv-tft-v9-architecture.svg">打开 TFT v9 大图</a>
+          </div>
+        </article>
+
+        <article class="page" id="pv-lgbm" data-title="2.4.3 LightGBM 架构">
+          <div class="kicker">2.4.3 / PV预测 / 三模型架构 / LightGBM</div>
+          <h2>2.4.3 LightGBM：每个未来点一张特征卡</h2>
+          <p class="lead">结论：LightGBM 是 pointwise 模型，用强特征兜住稳定性和解释性。</p>
+          <div class="figure">
+            <div class="figure-title">LightGBM 详细架构图</div>
+            <img class="arch-img" src="assets/images/pv-lgbm-architecture.svg" alt="LightGBM PV day-ahead 详细架构图">
+          </div>
+          <p>硬要求：线上特征顺序必须和训练 booster 完全一致；`/100` 是对齐训练量纲，不是 Kafka 输出量纲。</p>
+          <div class="page-actions">
+            <a href="assets/images/pv-lgbm-architecture.svg">打开 LightGBM 大图</a>
+          </div>
+        </article>
+
+        <article class="page" id="pv-tft-figure" data-title="2.4.4 TFT v5 参考图">
+          <div class="kicker">2.4.4 / PV预测 / 三模型架构 / 参考图</div>
+          <h2>2.4.4 TFT v5 图作为画图标准</h2>
+          <p class="lead">结论：后续模型图按这个风格画。输入、编码、解码、输出分区清楚，颜色区分模块，主线不交叉。</p>
+          <img class="arch-img" src="assets/images/tft-v5.png" alt="TFT v5 allweather 架构图">
+          <div class="page-actions">
+            <a href="assets/images/tft-v5.png">打开参考图</a>
+          </div>
+        </article>
+
+        <article class="page" id="pv-select" data-title="2.5 PV 推理和选优">
+          <div class="kicker">2.5 / PV预测 / 推理和选优</div>
+          <h2>2.5 `select_best_7` 是生产兜底</h2>
+          <p class="lead">结论：基础模型先各自写预测，最终按近 7 天历史表现站点级选优。</p>
+          <div class="figure">
+            <div class="figure-title">三模型到最终结果</div>
+            <div class="flow six">
+              <div class="step purple"><b>TimeXer</b><span>基础预测</span></div>
+              <div class="step blue"><b>TFT</b><span>基础预测</span></div>
+              <div class="step green"><b>LightGBM</b><span>基础预测</span></div>
+              <div class="step amber"><b>历史回测</b><span>近 7 天 MAE</span></div>
+              <div class="step red"><b>select_best_7</b><span>D1/D2 分开选</span></div>
+              <div class="step blue"><b>Kafka/Redis</b><span>最终输出</span></div>
+            </div>
+          </div>
+          <ul>
+            <li>完整预测日阈值用 276 点容忍 DST/WST。</li>
+            <li>rule 至少 1 天历史可参选；深度/机器学习模型通常至少 3 天。</li>
+            <li>最终结果写入时才做 DST/WST 修正。</li>
+          </ul>
+        </article>
+
+        <article class="page" id="pv-intraday" data-title="2.6 PV 日内 11:25">
+          <div class="kicker">2.6 / PV预测 / 日内 11:25</div>
+          <h2>2.6 日内不要污染日前历史</h2>
+          <p class="lead">结论：11:25 日内链路复用日前三模型，但必须写独立 intraday tag。</p>
+          <div class="figure">
+            <div class="figure-title">11:25 新链路</div>
+            <div class="flow">
+              <div class="step green"><b>intraday NWP</b><span>不用日前 NWP 表</span></div>
+              <div class="step purple"><b>三模型重跑</b><span>今天 + 明天</span></div>
+              <div class="step amber"><b>真实 PV</b><span>只用 00:00 到 cutoff</span></div>
+              <div class="step blue"><b>线性后处理</b><span>模型预测 + 辐射特征</span></div>
+              <div class="step red"><b>日内选优</b><span>只在日内候选里选</span></div>
+            </div>
+          </div>
+          <p>关键点：底层模型仍按日前训练口径走，`ref_date=today-1`，不要把 TFT / LightGBM 改成 `day_offset=0/1`。</p>
+        </article>
+
+        <article class="page" id="pv-snow" data-title="2.7 PV 积雪/融雪">
+          <div class="kicker">2.7 / PV预测 / 积雪/融雪</div>
+          <h2>2.7 积雪/融雪是一组覆盖规则</h2>
+          <p class="lead">结论：snow-on 负责雪天压低虚高，snow-off 负责雪后恢复，二者都要写清楚名单、触发条件和最后写入。</p>
+          <div class="figure">
+            <div class="figure-title">积雪/融雪细分链路</div>
+            <div class="flow six">
+              <div class="step green"><b>01:15 峰值</b><span>近 45 天历史最大 PV</span></div>
+              <div class="step amber"><b>20:45 snow-list</b><span>ECMWF 天气码 + 实发 PV</span></div>
+              <div class="step red"><b>snow-on</b><span>提前 5%，延续 3%</span></div>
+              <div class="step blue"><b>snow-off 候选</b><span>过去 7 天名单 - 今天名单</span></div>
+              <div class="step purple"><b>TimeXer 重跑</b><span>好天气历史日重构 2016 点</span></div>
+              <div class="step green"><b>覆盖写入</b><span>select_best_7 / Redis / Kafka</span></div>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>子项</th><th>口径</th></tr></thead>
+            <tbody>
+              <tr><td>snow-list</td><td>用 ECMWF、历史最大 PV、当天实发 PV 识别；名单必须可复盘。</td></tr>
+              <tr><td>snow-on</td><td>读取已有日前曲线，提前积雪压到历史最大 PV 的 5%，延续积雪压到 3%。</td></tr>
+              <tr><td>snow-off</td><td>过去 7 天 snow-list 减去今天 snow-list，再加人工配置；明天温度、辐射、天气码转好才重跑。</td></tr>
+              <tr><td>历史重构</td><td>选择 7 个好天气历史日，重构 2016 点输入，再跑 TimeXer。</td></tr>
+              <tr><td>输出</td><td>写 <code>snow_off_pv_dayahead</code>、<code>select_best_7</code>、<code>pv-dayahead-select-best-7</code>。</td></tr>
+              <tr><td>坑点</td><td>低 PV 可能是故障、限发或遮挡；注释比例和实际比例要一致；snow-off-list 要有 TTL。</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="page" id="pv-clipping" data-title="2.8 PV clipping">
+          <div class="kicker">2.8 / PV预测 / clipping</div>
+          <h2>2.8 clipping 是覆盖链路</h2>
+          <p class="lead">结论：clipping 不参与常规 `select_best_7` 排名，而是在后续调度里覆盖最终结果。</p>
+          <table>
+            <thead><tr><th>场景</th><th>正确口径</th></tr></thead>
+            <tbody>
+              <tr><td><code>sub_working_mode=0</code></td><td>走 6 源 clipping，模型用 `Timexer-pv-dayahead-mae-mape`。</td></tr>
+              <tr><td><code>sub_working_mode=1</code></td><td>走 EC 单源 clipping，模型用 `Timexer-pv-dayahead-ec-mae-mape`。</td></tr>
+              <tr><td>审计模型名</td><td>6 源写 `...-clipping`，EC 写 `...-ec-...-clipping`。</td></tr>
+              <tr><td>最终输出</td><td>仍写 `pv-dayahead-select-best-7` 和 `select_best_7`。</td></tr>
+            </tbody>
+          </table>
+          <div class="note">AUS `82026051100229` 的问题是 sub=0 站点被 sub=1 过滤挡掉，不是常规日前预测没写。</div>
+        </article>
+
+        <article class="page" id="pv-badcase" data-title="2.9 PV bad case">
+          <div class="kicker">2.9 / PV预测 / bad case</div>
+          <h2>2.9 PV bad case 先看天气和覆盖顺序</h2>
+          <table>
+            <thead><tr><th>类型</th><th>先看什么</th></tr></thead>
+            <tbody>
+              <tr><td>NWP 错配</td><td>格点、天气源、缺失回退、时区是否一致。</td></tr>
+              <tr><td>量纲错配</td><td>TFT / LGBM / TimeXer 是否从归一化量纲还原。</td></tr>
+              <tr><td>低发电 false positive</td><td>是否预测出晴天峰，但真实低发。</td></tr>
+              <tr><td>积雪误判</td><td>低 PV 是雪、故障、限发还是遮挡。</td></tr>
+              <tr><td>覆盖顺序</td><td>19:15、22:05、22:25、22:55、23:15 谁最后写。</td></tr>
+            </tbody>
+          </table>
+          <p>单站复现要区分 exact 原样输出、乘回业务量纲输出、历史截图输出，三种图不能混用。</p>
+        </article>
+
+        <article class="page" id="pv-lessons" data-title="2.10 PV lesson">
+          <div class="kicker">2.10 / PV预测 / lesson</div>
+          <h2>2.10 PV 的经验要服务下一轮实验</h2>
+          <div class="chapter-list">
+            <div class="card"><strong>Bitter lesson</strong><span>Foundation model 没天气输入，上限很低；Chronos-2 路线已证伪。</span></div>
+            <div class="card"><strong>Bitter lesson</strong><span>hard gate oracle 高不代表可学；天气源 winner 不稳定时要 soft attention。</span></div>
+            <div class="card"><strong>Happy lesson</strong><span>TFT source-attention + sample context 是正向路线。</span></div>
+            <div class="card"><strong>Happy lesson</strong><span>targetnorm TFT 修复旧 TFT 低幅值平顶，LightGBM 提供稳定对照。</span></div>
+          </div>
+        </article>
+
+        <article class="page" id="pv-future" data-title="2.11 PV 未来方向">
+          <div class="kicker">2.11 / PV预测 / 未来方向</div>
+          <h2>2.11 下一步先补生产确定性</h2>
+          <p class="lead">结论：PV 下一步不是无脑堆新 backbone，而是补 NWP、覆盖链路和 bad case 复盘。</p>
+          <div class="chapter-list">
+            <div class="card"><strong>NWP 策略</strong><span>精确缺失、距离阈值、站点同步剔除。</span></div>
+            <div class="card"><strong>覆盖链路</strong><span>clipping 按 sub_working_mode 拆 6 源和 EC。</span></div>
+            <div class="card"><strong>偏差修正</strong><span>中午低估、低发电 false positive、负偏差。</span></div>
+            <div class="card"><strong>规模化</strong><span>定时预测 Indexed Job，触发预测 worker 微批。</span></div>
+          </div>
+          <div class="page-actions">
+            <a href="docs/02_pv_forecasting/README.md">PV 章 Markdown</a>
+            <a href="docs/02_pv_forecasting/pv_book_sections.md">第2章完整小节</a>
+            <a href="docs/02_pv_forecasting/pv_model_architectures.md">PV 三模型架构</a>
+            <a href="docs/02_pv_forecasting/pv_casebook.md">PV 案例册</a>
+          </div>
+        </article>
+
+        <article class="page" id="pv-casebook" data-title="2.12 PV 案例册">
+          <div class="kicker">2.12 / PV预测 / 案例册</div>
+          <h2>2.12 PV 线上问题先看天气和写入</h2>
+          <p class="lead">结论：PV bad case 不能只看模型曲线。要先把 NWP、站点模式、量纲、覆盖顺序、日前/日内 tag 分开。</p>
+          <table>
+            <thead><tr><th>案例</th><th>根因口径</th><th>沉淀规则</th></tr></thead>
+            <tbody>
+              <tr><td>AUS `82026051100229` clipping 缺失</td><td>`sub_working_mode=0` 被 sub=1 clipping 过滤挡掉。</td><td>sub=0 走 6 源，sub=1 走 EC 单源。</td></tr>
+              <tr><td>NWP 错配</td><td>精确格点缺失后，不能无阈值找最近格点。</td><td>站点、PV、NWP、day mask 同步剔除。</td></tr>
+              <tr><td>TFT 低幅值平顶</td><td>旧 TFT 缺 target normalization / 反标准化链路。</td><td>区分原样输出、业务量纲输出、旧截图。</td></tr>
+              <tr><td>日内污染日前历史</td><td>日内刷新写入日前 tag，会污染 `select_best_7`。</td><td>dayahead 和 intraday 必须分 tag。</td></tr>
+            </tbody>
+          </table>
+          <div class="figure">
+            <div class="figure-title">PV 问题排查顺序</div>
+            <div class="flow four">
+              <div class="step amber"><b>天气</b><span>NWP 源、格点、缺失、时区</span></div>
+              <div class="step green"><b>模型</b><span>TimeXer / TFT / LGBM 输出量纲</span></div>
+              <div class="step purple"><b>覆盖</b><span>clipping、EC、snow 写入顺序</span></div>
+              <div class="step blue"><b>最终</b><span>Kafka、Redis、StarRocks tag</span></div>
+            </div>
+          </div>
+          <div class="page-actions">
+            <a href="docs/02_pv_forecasting/pv_casebook.md">完整 PV 案例册</a>
+          </div>
+        </article>
+
+        <article class="page" id="platform-intro" data-title="平台导语和小节">
+          <div class="kicker">第3章：AI算法平台</div>
+          <h2>本章导语</h2>
+          <p class="lead">AI 算法平台不是训练脚本集合。它要把数据、实验、指标、模型资产、上线复盘和文档沉淀做成闭环。</p>
+          <div class="chapter-list">
+            <div class="card"><strong>3.1 平台功能</strong><span>数据工厂、实验编排、MLflow、排行榜。</span></div>
+            <div class="card"><strong>3.2 数据工厂</strong><span>统一 raw、cleaned、feature、dataset。</span></div>
+            <div class="card"><strong>3.3 实验自动化</strong><span>smoke、50k pilot、full、远程 GPU。</span></div>
+            <div class="card"><strong>3.4 MLflow 和榜单</strong><span>指标、产物、模型对比。</span></div>
+            <div class="card"><strong>3.5 模型资产</strong><span>checkpoint、量纲、输入输出、回滚。</span></div>
+            <div class="card"><strong>3.6 多 Pod 推理</strong><span>站点分片、worker 微批、压测。</span></div>
+            <div class="card"><strong>3.7 自动化上限</strong><span>平台能执行，不能替你定义正确问题。</span></div>
+            <div class="card"><strong>3.8 当前缺口</strong><span>写成待办，不写成愿景。</span></div>
+            <div class="card"><strong>3.9 自动化成熟度</strong><span>L0 到 L5，看平台现在差在哪。</span></div>
+          </div>
+        </article>
+
+        <article class="page" id="platform-functions" data-title="3.1 平台功能">
+          <div class="kicker">3.1 / AI算法平台 / 功能</div>
+          <h2>3.1 平台要做成闭环</h2>
+          <div class="figure">
+            <div class="figure-title">平台主线</div>
+            <div class="flow six">
+              <div class="step green"><b>数据工厂</b><span>清洗、增强、构建数据集</span></div>
+              <div class="step purple"><b>实验编排</b><span>smoke / pilot / full</span></div>
+              <div class="step blue"><b>MLflow</b><span>参数、指标、产物</span></div>
+              <div class="step red"><b>排行榜</b><span>模型对比和目标状态</span></div>
+              <div class="step amber"><b>模型封装</b><span>checkpoint 和推理接口</span></div>
+              <div class="step blue"><b>复盘</b><span>问题回流下一轮</span></div>
+            </div>
+          </div>
+          <p>`D:\sigen_ai\docs\sessions` 要进入平台知识库。它记录为什么这样改，不是临时聊天记录。</p>
+        </article>
+
+        <article class="page" id="platform-data" data-title="3.2 平台数据工厂">
+          <div class="kicker">3.2 / AI算法平台 / 数据工厂</div>
+          <h2>3.2 数据工厂要统一口径</h2>
+          <p class="lead">结论：没有统一数据层，训练、生产、排查会各说各话。</p>
+          <div class="figure">
+            <div class="figure-title">数据标准链路</div>
+            <div class="flow">
+              <div class="step amber"><b>raw</b><span>原始入库和时间戳</span></div>
+              <div class="step green"><b>cleaned</b><span>缺失、异常、单位</span></div>
+              <div class="step purple"><b>feature</b><span>天气、日历、画像</span></div>
+              <div class="step blue"><b>dataset</b><span>切分、mask、hash</span></div>
+              <div class="step red"><b>DQ report</b><span>质量评分和变更记录</span></div>
+            </div>
+          </div>
+          <ul>
+            <li>PV `/100`、Load `filtered_load_power / 60 * 5` 这类量纲要进字典。</li>
+            <li>特征版本、数据版本、配置 hash 要进入实验报告。</li>
+            <li>预处理逻辑不能分散在平台、PV、Load 三个仓库里各写一套。</li>
+          </ul>
+        </article>
+
+        <article class="page" id="platform-experiment" data-title="3.3 平台实验自动化">
+          <div class="kicker">3.3 / AI算法平台 / 实验自动化</div>
+          <h2>3.3 先筛方向，再跑 full</h2>
+          <p class="lead">结论：平台要阻止“并发堆满 GPU 跑无效 full”的低质量实验。</p>
+          <table>
+            <thead><tr><th>阶段</th><th>作用</th></tr></thead>
+            <tbody>
+              <tr><td>smoke</td><td>检查代码、shape、loss、预测数组是否正常。</td></tr>
+              <tr><td>50k pilot</td><td>用 strict 口径筛方向，过 gate 再继续。</td></tr>
+              <tr><td>full</td><td>只给强候选，完整指标和产物必须落盘。</td></tr>
+              <tr><td>诊断</td><td>桶分析、曲线、bad case、偏差和能量指标。</td></tr>
+            </tbody>
+          </table>
+          <div class="note">GPU 调度要先看占用，不抢非本任务进程。平台要记录每个 started、blocked、failed、completed 实验。</div>
+        </article>
+
+        <article class="page" id="platform-mlflow" data-title="3.4 平台 MLflow 和榜单">
+          <div class="kicker">3.4 / AI算法平台 / MLflow 和榜单</div>
+          <h2>3.4 榜单不能只看一个数</h2>
+          <p class="lead">结论：RMSE_ACC 只是主指标，不能掩盖 MAPE、能量偏差和正负偏差。</p>
+          <table>
+            <thead><tr><th>字段</th><th>为什么要记录</th></tr></thead>
+            <tbody>
+              <tr><td>RMSE_ACC / MAPE_ACC</td><td>主指标和业务感知指标。</td></tr>
+              <tr><td>daily_energy_mae</td><td>日总量误差，防止曲线形状好但能量错。</td></tr>
+              <tr><td>daily_energy_bias</td><td>区分系统性高估或低估。</td></tr>
+              <tr><td>pos_dev / neg_dev</td><td>控制正负偏差平衡。</td></tr>
+              <tr><td>预测数组路径</td><td>后续 bad case 不用重跑全量推理。</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="page" id="platform-assets" data-title="3.5 平台模型资产">
+          <div class="kicker">3.5 / AI算法平台 / 模型资产</div>
+          <h2>3.5 模型上线要交付证据包</h2>
+          <p class="lead">结论：checkpoint 不是完整模型资产。上线要能解释输入、量纲、后处理和回滚。</p>
+          <div class="chapter-list">
+            <div class="card"><strong>输入规范</strong><span>张量 shape、天气源、变量顺序、缺失填补。</span></div>
+            <div class="card"><strong>量纲规范</strong><span>训练目标、线上写入、是否反归一化。</span></div>
+            <div class="card"><strong>后处理规范</strong><span>day mask、非负裁剪、DST/WST、quiet-day。</span></div>
+            <div class="card"><strong>追踪规范</strong><span>短名/长 tag 映射、checkpoint、配置 hash。</span></div>
+          </div>
+          <p>PV 的 targetnorm TFT 和 LightGBM 接入说明了这点：量纲和 model_name 写错，会把好模型变成线上坏 case。</p>
+        </article>
+
+        <article class="page" id="platform-scale" data-title="3.6 平台多 Pod 推理">
+          <div class="kicker">3.6 / AI算法平台 / 多 Pod 推理</div>
+          <h2>3.6 百万站点不能单 Pod 串行</h2>
+          <p class="lead">结论：定时预测走 Indexed Job 分片，外部触发走 worker 微批，两条链路共用同一套 batch 预测代码。</p>
+          <div class="figure">
+            <div class="figure-title">PV 大规模推理架构</div>
+            <div class="flow">
+              <div class="step green"><b>CronJob</b><span>45 万定时站点</span></div>
+              <div class="step purple"><b>Indexed Job</b><span>hash(site_id) 分片</span></div>
+              <div class="step blue"><b>Worker</b><span>5 万外部触发</span></div>
+              <div class="step amber"><b>Batch predict</b><span>Pod 内批量特征和推理</span></div>
+              <div class="step red"><b>幂等 upsert</b><span>失败可重跑</span></div>
+            </div>
+          </div>
+          <p>初始参数可以是 120 shards、20 并发 Pod。压测必须记录 batch 特征耗时、predict 耗时、upsert 耗时和 P95/P99。</p>
+        </article>
+
+        <article class="page" id="platform-limit" data-title="3.7 平台自动化上限">
+          <div class="kicker">3.7 / AI算法平台 / 自动化上限</div>
+          <h2>3.7 平台不能替代问题定义</h2>
+          <p class="lead">结论：完全 AI 算法自动化部署目前做不到。平台能自动执行，但不能自动保证方向正确。</p>
+          <table>
+            <thead><tr><th>不能完全自动化</th><th>原因</th></tr></thead>
+            <tbody>
+              <tr><td>问题定义</td><td>预测目标、horizon、指标权重需要业务判断。</td></tr>
+              <tr><td>数据归因</td><td>设备故障、限发、天气错配、积雪需要人工确认。</td></tr>
+              <tr><td>验证集构造</td><td>合法同分布、无泄漏验证集不是自动生成就可信。</td></tr>
+              <tr><td>上线决策</td><td>精度、吞吐、维护、回滚和风险要一起看。</td></tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="page" id="platform-gaps" data-title="3.8 平台当前缺口">
+          <div class="kicker">3.8 / AI算法平台 / 当前缺口</div>
+          <h2>3.8 短板要写成待办，不要写成愿景</h2>
+          <table>
+            <thead><tr><th>缺口</th><th>影响</th></tr></thead>
+            <tbody>
+              <tr><td>预处理逻辑分散</td><td>训练和生产口径不一致，外部审阅难解释。</td></tr>
+              <tr><td>Load QC 不统一</td><td>质量报告说服力弱。</td></tr>
+              <tr><td>配置 hash 不统一</td><td>复现实验证据弱。</td></tr>
+              <tr><td>预测资产保存不稳定</td><td>bad case 只能重跑。</td></tr>
+              <tr><td>短名/长 tag 映射分散</td><td>Kafka 和 StarRocks 排查容易看错。</td></tr>
+              <tr><td>推理压测缺标准报表</td><td>无法证明 10 万+ 到百万站点吞吐。</td></tr>
+            </tbody>
+          </table>
+          <div class="page-actions">
+            <a href="docs/03_ai_algorithm_platform/README.md">平台章 Markdown</a>
+            <a href="docs/03_ai_algorithm_platform/platform_book_sections.md">第3章完整小节</a>
+            <a href="docs/03_ai_algorithm_platform/automation_maturity_matrix.md">自动化成熟度矩阵</a>
+          </div>
+        </article>
+
+        <article class="page" id="platform-maturity" data-title="3.9 平台自动化成熟度">
+          <div class="kicker">3.9 / AI算法平台 / 自动化成熟度</div>
+          <h2>3.9 现在还不是完全自动部署</h2>
+          <p class="lead">结论：平台当前在 L2 到 L3。能自动跑实验、沉淀指标和资产，但坏例归因、上线判断、回滚阈值还不能交给系统自己拍板。</p>
+          <table>
+            <thead><tr><th>等级</th><th>状态</th><th>平台当前位置</th></tr></thead>
+            <tbody>
+              <tr><td>L1 可复现</td><td>固定配置能重跑。</td><td>生产上线部分还在这里。</td></tr>
+              <tr><td>L2 自动编排</td><td>smoke、pilot、full 自动跑。</td><td>实验编排主状态。</td></tr>
+              <tr><td>L3 自动评估</td><td>MLflow、榜单、预测资产自动沉淀。</td><td>排行榜和证据包在接近这里。</td></tr>
+              <tr><td>L4 半自动准入</td><td>精度、吞吐、回滚是硬 gate。</td><td>下一阶段目标。</td></tr>
+              <tr><td>L5 完全自动部署</td><td>系统自动定义问题并上线。</td><td>当前不到。</td></tr>
+            </tbody>
+          </table>
+          <div class="chapter-list">
+            <div class="card"><strong>能自动</strong><span>构建数据、跑实验、记指标、出榜单、保存预测资产。</span></div>
+            <div class="card"><strong>不能自动</strong><span>判断业务目标、验证集合法性、NWP/设备/积雪真根因。</span></div>
+            <div class="card"><strong>下一步</strong><span>数据字典、实验门禁、模型证据包、压测模板、上线 gate。</span></div>
+            <div class="card"><strong>判断标准</strong><span>平台把证据摆全，人负责最后上线责任。</span></div>
+          </div>
+          <div class="page-actions">
+            <a href="docs/03_ai_algorithm_platform/automation_maturity_matrix.md">完整成熟度矩阵</a>
+          </div>
+        </article>
+
+        <article class="page" id="sources" data-title="来源索引">
+          <div class="kicker">来源索引</div>
+          <h2>本书来自现有项目和排查材料</h2>
+          <ul>
+            <li>LOAD：`sigen-load-prediction/docs`、`D:\sigen_ai\docs\pv_load_station_prediction_api_v1.md`，以及 `D:\sigen_ai\docs\reports\load` 的坏站、温度、欧洲天气报告。</li>
+            <li>PV：`sigen-pv-prediction/docs`、`D:\sigen_ai\docs\pv_load_station_prediction_api_v1.md`、`sigen-ai-platform/models`，以及 `D:\sigen_ai\docs\plan\pv`、`D:\sigen_ai\docs\reports\pv`、`D:\sigen_ai\docs\sessions\pv-prediction`。</li>
+            <li>平台：`sigen-ai-platform/docs`、`bitter_lessons.md`、`success_lesson.md`、`D:\sigen_ai\docs\sessions`。</li>
+          </ul>
+          <div class="page-actions">
+            <a href="docs/index.md">Markdown 总目录</a>
+            <a href="docs/01_load_forecasting/load_book_sections.md">第1章完整小节</a>
+            <a href="docs/01_load_forecasting/load_casebook.md">LOAD 案例册</a>
+            <a href="docs/02_pv_forecasting/pv_book_sections.md">第2章完整小节</a>
+            <a href="docs/02_pv_forecasting/pv_casebook.md">PV 案例册</a>
+            <a href="docs/03_ai_algorithm_platform/platform_book_sections.md">第3章完整小节</a>
+            <a href="docs/03_ai_algorithm_platform/automation_maturity_matrix.md">自动化成熟度矩阵</a>
+            <a href="docs/02_pv_forecasting/pv_model_architectures.md">PV 三模型架构</a>
+          </div>
+        </article>
+
+        <div class="toolbar">
+          <button id="prevBottom">上一页</button>
+          <div class="counter" id="counterBottom"></div>
+          <button id="nextBottom">下一页</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const pages = Array.from(document.querySelectorAll('.page'));
+    const navButtons = Array.from(document.querySelectorAll('nav button[data-page]'));
+    const counters = [document.getElementById('counter'), document.getElementById('counterBottom')];
+    const prevButtons = [document.getElementById('prevTop'), document.getElementById('prevBottom')];
+    const nextButtons = [document.getElementById('nextTop'), document.getElementById('nextBottom')];
+
+    function currentIndexFromHash() {
+      const id = window.location.hash.replace('#', '');
+      const index = pages.findIndex(page => page.id === id);
+      return index >= 0 ? index : 0;
+    }
+
+    function showPage(index, updateHash = true) {
+      const safeIndex = Math.max(0, Math.min(index, pages.length - 1));
+      const page = pages[safeIndex];
+
+      pages.forEach(item => item.classList.toggle('active', item === page));
+      navButtons.forEach(button => {
+        button.classList.toggle('active', button.dataset.page === page.id);
+        if (button.dataset.page === page.id) {
+          let section = button.closest('details');
+          while (section) {
+            section.open = true;
+            section = section.parentElement.closest('details');
+          }
+        }
+      });
+
+      counters.forEach(counter => {
+        counter.textContent = `${safeIndex + 1} / ${pages.length} · ${page.dataset.title}`;
+      });
+
+      prevButtons.forEach(button => {
+        button.disabled = safeIndex === 0;
+      });
+      nextButtons.forEach(button => {
+        button.disabled = safeIndex === pages.length - 1;
+      });
+
+      if (updateHash) {
+        history.replaceState(null, '', `#${page.id}`);
+      }
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+
+    navButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const index = pages.findIndex(page => page.id === button.dataset.page);
+        showPage(index);
+      });
+    });
+
+    prevButtons.forEach(button => {
+      button.addEventListener('click', () => showPage(currentIndexFromHash() - 1));
+    });
+
+    nextButtons.forEach(button => {
+      button.addEventListener('click', () => showPage(currentIndexFromHash() + 1));
+    });
+
+    window.addEventListener('hashchange', () => showPage(currentIndexFromHash(), false));
+    window.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft') showPage(currentIndexFromHash() - 1);
+      if (event.key === 'ArrowRight') showPage(currentIndexFromHash() + 1);
+    });
+
+    showPage(currentIndexFromHash(), false);
+  </script>
+</body>
+</html>
