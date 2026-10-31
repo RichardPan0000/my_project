@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="欧洲 Load 预测 2026 年 10 月精度首轮分析：同一站点日模型对比、指标切换、GridXGB 覆盖子集和近期数据完整性。">
+  <title>欧洲 Load 预测精度｜Sigen AI Book</title>
+  <link rel="stylesheet" href="assets/load-accuracy.css">
+  <script src="assets/load-accuracy.js" defer></script>
+</head>
+<body>
+  <main>
+    <section class="hero" id="top" aria-labelledby="page-title">
+      <div class="wrap hero-inner">
+        <header class="hero-nav">
+          <a class="brand" href="index.html">Sigen AI Book</a>
+          <nav aria-label="相关页面"><a href="pv-accuracy-20261031.html">PV 精度</a><a href="worklog/load-forecast-audit-20261031/accuracy-report-20261031.md">完整报告</a></nav>
+        </header>
+        <h1 id="page-title"><span>欧洲 Load</span><span>预测精度</span></h1>
+        <div class="hero-bottom">
+          <div><strong>1,059,463</strong><span>个共同站点日 · 2026 年 10 月 1–23 日</span></div>
+          <p>同一批站点日上，RMSE 评分、MAPE 评分和 MAE 给出的第一名各不相同。</p>
+        </div>
+        <a class="hero-action" href="#metric">切换指标查看排名</a>
+      </div>
+    </section>
+
+    <section class="section ledger wrap" aria-labelledby="ledger-title">
+      <div class="ledger-title"><h2 id="ledger-title">先确定可比样本</h2><p>从欧洲 StarRocks 精度表中选 Load 记录，按日期、站点、模型保留最新一条。四个主要模型都在场的站点日才进入主比较。</p></div>
+      <div class="ledger-values">
+        <div><strong>49,692</strong><span>共同覆盖站点</span></div>
+        <div><strong>1,059,463</strong><span>共同覆盖站点日</span></div>
+        <div><strong>4</strong><span>主要比较模型</span></div>
+      </div>
+    </section>
+
+    <section class="section metric-section" id="metric" aria-labelledby="metric-title">
+      <div class="wrap">
+        <div class="section-intro"><h2 id="metric-title">指标决定排名</h2><p>下面所有数值都来自相同的 1,059,463 个站点日。RMSE、MAPE 是表内评分，越高越好；MAE 越低越好。</p></div>
+        <div class="leaders" aria-label="三种指标的领先模型">
+          <div><span>RMSE 评分最高</span><strong>TimeXer</strong><em>0.7355</em></div>
+          <div><span>MAPE 评分最高</span><strong>Rule</strong><em>0.6707</em></div>
+          <div><span>MAE 最低</span><strong>最终标签</strong><em>0.6851</em></div>
+        </div>
+        <div class="metric-workspace" data-ui>
+          <div class="metric-control">
+            <h3>选择一个指标</h3>
+            <div class="metric-buttons" role="group" aria-label="模型排名指标">
+              <button type="button" data-metric="rmse" class="active" aria-pressed="true">RMSE 评分</button>
+              <button type="button" data-metric="mape" aria-pressed="false">MAPE 评分</button>
+              <button type="button" data-metric="mae" aria-pressed="false">MAE</button>
+            </div>
+            <p id="metric-explain">RMSE 评分越高越好。该表内评分并非预测正确点数的占比。</p>
+          </div>
+          <div class="rankings" id="rankings" aria-live="polite">
+            <div><span>TimeXer</span><strong>0.7355</strong></div>
+            <div><span>最终标签</span><strong>0.7287</strong></div>
+            <div><span>DLinear</span><strong>0.7281</strong></div>
+            <div><span>Rule</span><strong>0.7225</strong></div>
+          </div>
+        </div>
+        <figure class="figure model-figure">
+          <img src="assets/load-accuracy/model-comparison.png" width="1569" height="764" alt="共同站点日的 RMSE 评分均值：TimeXer 0.7355，最终标签 0.7287，DLinear 0.7281，Rule 0.7225。" loading="lazy">
+          <figcaption>RMSE 评分视图。横轴从 0.70 开始，用于看清模型间差异；完整三指标数值见报告。</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section paired wrap" aria-labelledby="paired-title">
+      <div class="paired-text"><h2 id="paired-title">最终标签没有全面超过 TimeXer</h2><p>主比较中，最终标签的平均 RMSE 评分比 TimeXer 低 0.00683。按同一站点日配对，它有 35.42% 的日子更高，47.20% 的日子更低。</p><p>但最终标签的平均 MAE 为 0.6851，低于 TimeXer 的 0.7313。没有核实选优目标和覆盖规则前，不能把单一评分当作选优成败的全部依据。</p></div>
+      <figure class="figure paired-figure">
+        <img src="assets/load-accuracy/paired-timeXer.png" width="1365" height="455" alt="最终标签与 TimeXer 在相同站点日配对：RMSE 评分更高 35.4%，相同 17.4%，更低 47.2%。" loading="lazy">
+        <figcaption>375,298 次更高，184,059 次相同，500,106 次更低。相同评分不等于同一条预测曲线。</figcaption>
+      </figure>
+    </section>
+
+    <section class="section subset" aria-labelledby="subset-title">
+      <div class="wrap subset-layout">
+        <div class="subset-copy"><h2 id="subset-title">GridXGB 只在小范围出现</h2><p>GridXGB 10 月涉及 6,818 站，而四个主要模型涉及约 5.1 万站。要比较它，需缩到五模型都有评分的 6,631 站、143,060 站点日。</p><p>在这个子集里，最终标签平均 RMSE 评分 0.7519，GridXGB 0.7396。这个结果只适用于共同覆盖子集。</p></div>
+        <figure class="figure">
+          <img src="assets/load-accuracy/grid-cohort.png" width="1582" height="847" alt="五模型共同覆盖子集的 RMSE 评分：最终标签 0.7519，TimeXer 0.7514，DLinear 0.7464，GridXGB 0.7396，Rule 0.7388。" loading="lazy">
+          <figcaption>图中横轴从 0.72 开始；样本为 GridXGB 可用的共同子集。</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section daily wrap" id="daily" aria-labelledby="daily-title">
+      <div class="section-intro"><h2 id="daily-title">日均分会变化，覆盖也会变化</h2><p>10 月 1–23 日，最终标签去重后的日均 RMSE 评分在 0.7134 至 0.7412 之间。10 月末应同时看评分和站点数。</p></div>
+      <figure class="figure daily-figure">
+        <img src="assets/load-accuracy/daily-trend.png" width="1830" height="778" alt="10月1至29日最终标签日均 RMSE 评分折线：10月16日为 0.7134，20日为 0.7412，26日为 0.7125，29日为 0.7245。" loading="lazy">
+        <figcaption>10 月 30 日仅有 5 站，未放入趋势线。趋势线中的日均分按当天去重后的站点等权计算。</figcaption>
+      </figure>
+      <div class="daily-callout"><strong>10 月 29 日</strong><p>这天四模型共同覆盖 48,770 站。DLinear、TimeXer、最终标签、Rule 的 RMSE 评分依次为 0.7302、0.7268、0.7245、0.7152。单日排名与 1–23 日的整体排名不同。</p></div>
+    </section>
+
+    <section class="section coverage" aria-labelledby="coverage-title">
+      <div class="wrap coverage-layout">
+        <div class="coverage-copy"><h2 id="coverage-title">最新一天只有 5 站</h2><p>此前最终标签每天通常覆盖约 4.4 万至 4.9 万站；10 月 24 日只有 31,633 站，10 月 30 日只有 5 站。不能用最新一天的均分代表欧洲整体。</p><p>10 月 25–28 日存在重复写入；25 日有 42,604 个站点的重复记录评分不完全相同。报告统一取最新 <code>record_time</code>，并保留异常作为待排查事项。</p></div>
+        <figure class="figure">
+          <img src="assets/load-accuracy/coverage.png" width="1441" height="778" alt="10月24至30日最终标签去重后站点覆盖分别为 31633、48185、48358、43561、48745、48770、5。" loading="lazy">
+          <figcaption>浅色带表示此前常见的约 4.4 万至 4.9 万站；柱高为去重后的站点数。</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section method wrap" id="method" aria-labelledby="method-title">
+      <h2 id="method-title">分析口径</h2>
+      <div class="method-steps">
+        <div><strong>数据</strong><p>欧洲 StarRocks 表 <code>sigen_ai.pv_model_accuracy_result</code>，仅取 <code>predict_type=2</code>。</p></div>
+        <div><strong>去重</strong><p>每个日期、站点、模型只保留最新 <code>record_time</code> 的评分。</p></div>
+        <div><strong>配对</strong><p>主比较仅保留四模型共同覆盖的站点日，避免覆盖范围不同造成的均值偏差。</p></div>
+        <div><strong>解释</strong><p>本地代码提供了指标公式线索，但欧洲实际部署版本和原始曲线尚未复算。</p></div>
+      </div>
+    </section>
+
+    <section class="section questions" aria-labelledby="questions-title">
+      <div class="wrap questions-inner">
+        <h2 id="questions-title">读数时要记住</h2>
+        <div class="qa"><h3>0.7287 是 72.87% 准确率吗？</h3><p>不是。它是表内 <code>rmse_acc_1hour</code> 的站点日均值。当前本地代码按小时聚合后用归一化 RMSE 计算评分，但尚未证明 10 月欧洲线上使用同一版本。</p></div>
+        <div class="qa"><h3>为什么最终标签不是 RMSE 第一？</h3><p>尚未核实选优目标和覆盖规则。已确认的是：共同样本上它的 MAE 最低、RMSE 评分低于 TimeXer。不能凭一个均值反推选中了哪种基础模型。</p></div>
+        <div class="qa"><h3>Load 低分站点怎么看？</h3><p>本地代码的白名单规则使用 <code>mape_acc_1hour &lt; 0.4</code> 且至少 4 天。按本报告窗口的数值条件，共有 6,063 站；白名单其他条件及最终生效情况仍需核实。</p></div>
+        <div class="qa"><h3>能和 PV 的 0.8471 比吗？</h3><p>不能直接比较。目标变量、站点集合和有效点规则不同，且两边的线上评分公式均未从原始曲线复算。</p></div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <strong>Load 精度</strong>
+      <p>2026 年 10 月 31 日的首轮分析快照，不自动更新。数据库只读，网页不连接生产环境。</p>
+      <div><a href="worklog/load-forecast-audit-20261031/accuracy-report-20261031.md">完整报告与 SQL</a><a href="pv-accuracy-20261031.html">PV 精度页</a><a href="index.html">Sigen AI Book</a><a href="#top">返回顶部</a></div>
+    </div>
+  </footer>
+</body>
+</html>
