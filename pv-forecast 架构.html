@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PV 预测：一条链、三个模型、四次覆盖</title>
+<style>
+/* ============================================================
+   方向：白纸黑数据（printed technical report）
+   —— 用真实的排版尺度做主，不靠线条、阴影、渐变、序号
+   字体：一个字族；字号只留五级
+   ============================================================ */
+:root{
+  --paper:#f7f8f8;
+  --wash:#edeeed;      /* 面，一级比纸暗 */
+  --wash-2:#dfe1e0;    /* 面，二级 */
+  --ink:#12161a;
+  --ink-2:#4c5257;
+  --ink-3:#5c636a;
+  --accent:#16409e;
+  --accent-wash:#e3e9f6;
+  --night:#0e1116;
+  --night-wash:#181d24;
+  --night-ink:#ecede9;
+  --night-ink-2:#a9b0b8;
+
+  --t1:clamp(40px,6.4vw,86px);
+  --t2:clamp(27px,3.3vw,40px);
+  --t3:21px;
+  --t4:17px;
+  --t5:13px;
+
+  --pad:clamp(18px,3vw,32px);
+  --sans:"PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:var(--t4);line-height:1.62;
+  font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:#fff}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 var(--pad)}
+h1,h2,h3,p,ul,ol,figure,table{margin:0}
+
+/* ---------- 运动 ---------- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .55s ease,transform .55s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal:nth-child(2){transition-delay:.07s}
+.reveal:nth-child(3){transition-delay:.14s}
+.reveal:nth-child(4){transition-delay:.21s}
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  *{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+
+/* ============================ 报头 ============================ */
+header.top{padding:clamp(56px,9vw,120px) 0 clamp(40px,6vw,72px)}
+header.top h1{
+  font-size:var(--t1);line-height:.98;letter-spacing:-.035em;font-weight:800;
+  max-width:13ch;text-wrap:balance;hyphens:none;
+}
+header.top .stand{
+  font-size:var(--t3);line-height:1.5;color:var(--ink-2);
+  max-width:30ch;margin-top:28px;
+}
+.facts{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,4vw,48px);
+  margin-top:clamp(40px,6vw,72px);
+}
+.facts > div{padding:0}
+.facts .n{font-size:var(--t2);font-weight:700;letter-spacing:-.02em;line-height:1}
+.facts .k{font-size:var(--t5);color:var(--ink-2);margin-top:8px}
+@media (max-width:720px){ .facts{grid-template-columns:repeat(2,1fr)} }
+
+/* ============================ 章节 ============================ */
+section{padding:clamp(56px,8vw,116px) 0}
+section + section{padding-top:clamp(48px,6vw,86px)}
+h2{font-size:var(--t2);line-height:1.1;letter-spacing:-.025em;font-weight:750;max-width:20ch;text-wrap:balance;hyphens:none}
+.lead{font-size:var(--t3);line-height:1.5;color:var(--ink-2);max-width:34ch;margin-top:20px}
+h3{font-size:var(--t3);font-weight:700;letter-spacing:-.01em;margin:clamp(40px,5vw,64px) 0 14px}
+p{max-width:62ch}
+p + p{margin-top:14px}
+strong{font-weight:700}
+a{color:var(--accent);text-decoration:none;border-bottom:2px solid var(--accent-wash)}
+a:hover{border-bottom-color:var(--accent)}
+code{
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.88em;
+  background:var(--wash);padding:2px 6px;border-radius:3px;
+}
+.night code{background:var(--night-wash);color:var(--night-ink)}
+
+/* 双栏：文字 + 图/表 */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(24px,4vw,56px);align-items:start;margin-top:clamp(28px,4vw,44px)}
+.split.flip{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+@media (max-width:880px){ .split,.split.flip{grid-template-columns:1fr} }
+
+/* 图 */
+figure{margin-top:clamp(24px,3.5vw,40px);background:var(--wash);padding:clamp(16px,2.4vw,28px)}
+figure svg{display:block;width:100%;height:auto}
+figcaption{font-size:var(--t5);color:var(--ink-2);margin-top:14px;max-width:60ch}
+figcaption b{color:var(--ink);font-weight:700}
+
+/* 表 */
+table{width:100%;border-collapse:collapse;font-size:var(--t4);margin-top:clamp(20px,3vw,32px)}
+caption{text-align:left;font-size:var(--t5);color:var(--ink-2);padding-bottom:10px}
+th{
+  text-align:left;font-weight:700;font-size:var(--t5);color:var(--ink-2);
+  background:var(--wash);padding:10px 12px;
+}
+td{padding:12px;vertical-align:top}
+tbody tr:nth-child(even) td{background:var(--wash)}
+.night tbody tr:nth-child(even) td{background:var(--night-wash)}
+td.n{font-weight:700;white-space:nowrap}
+
+/* 提示条：用色块，不用竖线 */
+.callout{background:var(--accent-wash);padding:20px 22px;margin-top:clamp(24px,3vw,36px);max-width:62ch}
+.callout .h{display:block;font-weight:750;margin-bottom:6px}
+.callout.warn{background:#f7e6e2}
+.callout.warn .h{color:#8a2f1c}
+.night .callout{background:var(--night-wash);color:var(--night-ink)}
+
+/* ============================ 夜间色场 ============================ */
+.night{background:var(--night);color:var(--night-ink)}
+.night .lead,.night .k,.night figcaption,.night th,.night caption{color:var(--night-ink-2)}
+.night th{background:var(--night-wash)}
+.night td{color:var(--night-ink)}
+.night a{color:#9dbdff;border-bottom-color:#2b3a55}
+.night figure{background:var(--night-wash)}
+.ov{color:#ffb4a2}      /* 覆盖链路：夜间色场里的唯一第二强调 */
+.accent{color:var(--accent)}
+.night .accent{color:#9dbdff}
+
+/* ============================ 交互：一天 ============================ */
+.day{display:flex;gap:6px;flex-wrap:wrap;margin-top:26px;padding:0;list-style:none}
+.day button{
+  font-family:inherit;font-size:var(--t4);font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--night-ink);background:var(--night-wash);border:0;padding:10px 14px;cursor:pointer;
+  transition:background .2s,color .2s,transform .2s;
+}
+.day button:hover{transform:translateY(-2px);background:#232a33}
+.day button[aria-pressed="true"]{background:var(--night-ink);color:var(--night)}
+.stage{margin-top:18px;background:var(--night-wash);padding:22px;min-height:132px}
+.stage .t{font-size:var(--t3);font-weight:750;margin-bottom:8px}
+.stage p{color:var(--night-ink-2);max-width:58ch}
+.stage .tag{display:inline-block;font-size:var(--t5);font-weight:700;padding:3px 8px;background:#2a323c;color:var(--night-ink);margin-top:12px}
+.stage .tag.over{background:#4a2318;color:#ffb4a2}
+
+/* ============================ 168 格 ============================ */
+.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:22px}
+.toggle{
+  font-family:inherit;font-size:var(--t4);font-weight:700;padding:10px 16px;cursor:pointer;
+  background:var(--wash);color:var(--ink);border:0;
+}
+.toggle[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.g168{display:grid;grid-template-columns:46px repeat(24,minmax(12px,1fr));gap:2px;margin-top:14px}
+.g168 .rl{font-size:var(--t5);color:var(--ink-3);text-align:right;padding-right:8px;line-height:26px}
+.g168 .cl{font-size:var(--t5);color:var(--ink-3);text-align:center;line-height:1;padding-bottom:4px;font-variant-numeric:tabular-nums}
+.g168 .c{height:26px;background:#cfd9ea;transition:background .18s}
+.g168 .c.night{background:#1d242e}
+.g168 .c:hover{background:var(--accent)}
+.g168.masked .c.night{background:repeating-linear-gradient(135deg,#b9bdbb 0 3px,#e4e6e4 3px 6px)}
+.keys{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;font-size:var(--t5);color:var(--ink-2)}
+.keys i{display:inline-block;width:12px;height:12px;margin-right:7px;vertical-align:-1px;background:#cfd9ea}
+.keys i.k2{background:#1d242e}
+.keys i.k3{background:repeating-linear-gradient(135deg,#b9bdbb 0 3px,#e4e6e4 3px 6px)}
+
+/* ============================ 6×14 矩阵 ============================ */
+.m84{display:grid;grid-template-columns:68px repeat(14,minmax(26px,1fr));gap:2px;margin-top:22px}
+.m84 .src{font-size:var(--t5);font-weight:700;color:var(--ink-2);display:flex;align-items:center}
+.m84 .vh{font-size:var(--t5);color:var(--ink-3);text-align:center;padding-bottom:6px;line-height:1.2}
+.m84 .vh em{display:block;font-style:normal;color:var(--ink-3)}
+.m84 .cell{height:28px;background:var(--wash);display:flex;align-items:center;justify-content:center;font-size:var(--t5);color:var(--ink-3)}
+.m84 .cell.on{background:#cfd9ea;color:var(--accent);font-weight:700}
+.m84 .cell:hover{background:var(--accent);color:#fff}
+.m84 .cell.lock{background:var(--ink);color:var(--paper)}
+
+/* ============================ 模型板 ============================ */
+.plate{margin-top:clamp(44px,6vw,76px)}
+.plate > header{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.plate h4{font-size:var(--t2);font-weight:750;letter-spacing:-.025em;line-height:1.1;margin:0}
+.plate .meta{font-size:var(--t5);color:var(--ink-2)}
+
+/* ============================ 两栏对照 ============================ */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2.4vw,24px);margin-top:28px}
+.two > div{background:var(--wash);padding:22px}
+.two h4{font-size:var(--t3);margin:0 0 10px}
+.two ul{margin:0;padding-left:18px}
+.two li{margin:7px 0}
+@media (max-width:760px){ .two{grid-template-columns:1fr} }
+
+ul.plain{padding-left:18px;margin-top:14px}
+ul.plain li{margin:8px 0;max-width:60ch}
+
+footer{padding:clamp(48px,6vw,80px) 0 clamp(56px,8vw,96px)}
+footer .big{font-size:var(--t2);font-weight:750;letter-spacing:-.02em;line-height:1.15;max-width:24ch}
+footer .fine{font-size:var(--t5);color:var(--ink-2);margin-top:28px;max-width:80ch;line-height:1.9}
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <h1 class="reveal">天气是上限，<br>选优是兜底。</h1>
+  <p class="stand reveal">PV 预测不是单模型系统。四个模型各出一条曲线，选优挑一条，覆盖链再改写它。下面是这条链的全部口径。</p>
+
+  <div class="facts reveal">
+    <div><div class="n">2016</div><div class="k">历史窗口，7 天的 5 分钟点</div></div>
+    <div><div class="n">84</div><div class="k">天气矩阵：6 个源 × 14 个变量</div></div>
+    <div><div class="n">259</div><div class="k">LightGBM 每个点一行特征</div></div>
+    <div><div class="n">576</div><div class="k">两天的输出点数</div></div>
+  </div>
+</header>
+
+<!-- ================= 1 ================= -->
+<section class="night">
+  <div class="wrap">
+    <h2 class="reveal">最终结果由最后一次写入决定</h2>
+    <p class="lead reveal">19:15 跑完的三个模型只决定起点。晚上还有四次覆盖，每一次都会改写结果，而且都写同一个模型名。</p>
+
+    <ul class="day reveal" id="day"></ul>
+    <div class="stage" id="stage" aria-live="polite">
+      <div class="t">19:15　常规日前</div>
+      <p>三个模型加 rule 各写一条曲线，再由 select_best_7 挑一条。这是一天里唯一一次“选”，后面全是“改”。</p>
+      <span class="tag">写入基础结果</span>
+    </div>
+
+    <div class="split">
+      <div>
+        <p class="reveal">排查线上问题时，第一步永远是<b>按写入时间排序</b>，而不是按模型名去找。覆盖链会写同一个 model_name，只看名字会以为一切正常。</p>
+        <p class="reveal">第二件事是把三种图分开看：当前项目原样输出、乘回业务量纲的输出、用户截图里的旧输出。混在一起看，会把量纲问题误判成模型问题。</p>
+      </div>
+      <figure class="reveal">
+        <svg viewBox="0 0 620 220" role="img" aria-label="四条覆盖链路依次改写最终结果">
+          <rect x="0" y="24" width="180" height="52" fill="#232a33"/>
+          <text x="14" y="46" font-size="13" font-weight="700" fill="#ecede9">19:15 基础预测</text>
+          <text x="14" y="66" font-size="12" fill="#a9b0b8">三模型 + rule</text>
+
+          <rect x="200" y="24" width="180" height="52" fill="#232a33"/>
+          <text x="214" y="46" font-size="13" font-weight="700" fill="#ecede9">select_best_7</text>
+          <text x="214" y="66" font-size="12" fill="#a9b0b8">排序，不融合</text>
+
+          <rect x="400" y="24" width="220" height="52" fill="#3a1d15"/>
+          <text x="414" y="46" font-size="13" font-weight="700" fill="#ffb4a2">22:05 / 22:25 覆盖</text>
+          <text x="414" y="66" font-size="12" fill="#c99a8e">clipping · EC 单源</text>
+
+          <rect x="400" y="96" width="220" height="52" fill="#3a1d15"/>
+          <text x="414" y="118" font-size="13" font-weight="700" fill="#ffb4a2">22:55 / 23:15 覆盖</text>
+          <text x="414" y="138" font-size="12" fill="#c99a8e">snow-on · snow-off</text>
+
+          <rect x="0" y="96" width="380" height="52" fill="#232a33"/>
+          <text x="14" y="118" font-size="13" font-weight="700" fill="#ecede9">最终写入 Kafka / Redis / StarRocks</text>
+          <text x="14" y="138" font-size="12" fill="#a9b0b8">下游只看这一条</text>
+
+          <text x="0" y="186" font-size="12" fill="#a9b0b8">顺序就是业务规则。改 cron 顺序等于改规则，但代码里通常没有断言保护。</text>
+          <text x="0" y="206" font-size="12" fill="#ffb4a2">雪天被压低、中午被截断、单源站被过滤——都是这条链上的事故。</text>
+        </svg>
+        <figcaption>覆盖链的四种触发：限发、单源、积雪、融雪。它们不参与选优排名，直接写最终结果。</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2 ================= -->
+<section>
+  <div class="wrap">
+    <h2 class="reveal">三个数字长出了全部张量</h2>
+    <p class="lead reveal">288 是一天，2016 是七天，576 是两天。所有 patch、注意力、mask 都由它们派生。</p>
+
+    <figure class="reveal">
+      <svg viewBox="0 0 1000 230" role="img" aria-label="2016 个五分钟点压缩为 168 个小时 token">
+        <text x="0" y="14" font-size="12" fill="#4c5257">原始序列　7 天 × 288 点</text>
+
+        <rect x="0" y="26" width="430" height="38" fill="#cfd9ea"/>
+        <g fill="#12161a" font-size="11" font-weight="700" text-anchor="middle">
+          <text x="30" y="50">D-6</text><text x="91" y="50">D-5</text><text x="152" y="50">D-4</text>
+          <text x="213" y="50">D-3</text><text x="274" y="50">D-2</text><text x="335" y="50">D-1</text>
+          <text x="399" y="50">D0</text>
+        </g>
+        <g fill="#12161a" opacity=".2">
+          <rect x="60" y="26" width="2" height="38"/><rect x="121" y="26" width="2" height="38"/>
+          <rect x="182" y="26" width="2" height="38"/><rect x="243" y="26" width="2" height="38"/>
+          <rect x="304" y="26" width="2" height="38"/><rect x="365" y="26" width="2" height="38"/>
+        </g>
+
+        <text x="0" y="88" font-size="12" fill="#4c5257">2016 个点 = 7 × 288</text>
+        <text x="470" y="14" font-size="12" fill="#4c5257">压缩后　168 个小时 token</text>
+        <g id="pg"></g>
+        <text x="470" y="196" font-size="12" fill="#4c5257">12 点 = 1 小时 = 1 个 patch，无重叠。深色格是夜间。</text>
+        <text x="470" y="216" font-size="12" font-weight="700" fill="#16409e">5 分钟的形状，在这一步就被压掉了。</text>
+      </svg>
+      <figcaption>168 是 TimeXer 和 TFT 注意力序列的真实长度。理解这一点，后面的结构图才读得通。</figcaption>
+    </figure>
+
+    <div class="split">
+      <div>
+        <p class="reveal">训练和推理用同一套形状。形状对不上通常不是模型 bug，而是取数窗口少了一天、或者 mask 没跟数组一起过滤。</p>
+        <p class="reveal">书稿里还有一处不一致：未来天气的粒度同时写作 288 点（5 分钟）和 48 小时。两种写法在代码里对应不同的 expand 逻辑，看代码时要确认是哪一种。</p>
+      </div>
+      <table class="reveal">
+        <caption>训练张量</caption>
+        <thead><tr><th>张量</th><th>形状</th><th>含义</th></tr></thead>
+        <tbody>
+          <tr><td><code>x_pv</code></td><td class="n">[B, 2016]</td><td>历史 7 天 5 分钟 PV</td></tr>
+          <tr><td><code>x_wea</code></td><td class="n">[B, 168, 84]</td><td>历史小时级多源天气</td></tr>
+          <tr><td><code>y_wea</code></td><td class="n">[B, 288, 84]</td><td>未来天气（或 48 小时）</td></tr>
+          <tr><td><code>y_pv</code></td><td class="n">[B, 288]</td><td>单日标签</td></tr>
+          <tr><td><code>y_pv</code></td><td class="n">[B, 576]</td><td>两日标签</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3 特征 ================= -->
+<section>
+  <div class="wrap">
+    <h2 class="reveal">特征的每一组都在补一个缺口</h2>
+    <p class="lead reveal">天气补上限，历史补形状，装机补量纲，时间补对齐。四组凑不齐，模型再大也白搭。</p>
+
+    <table class="reveal">
+      <caption>四组特征各自解决的问题</caption>
+      <thead><tr><th style="width:120px">组</th><th style="width:180px">补什么缺口</th><th>具体内容</th></tr></thead>
+      <tbody>
+        <tr><td class="n">历史 PV</td><td>日内形状与用户差异</td><td>7 天同刻 lag、日能量、峰值、峰谷、稳定性、容量代理、缺失标记</td></tr>
+        <tr><td class="n">天气</td><td>上限与波动来源</td><td>GHI、DNI、温度、风速、云量、降水、天气码，6 源共 84 列</td></tr>
+        <tr><td class="n">装机</td><td>量纲与物理边界</td><td>归一化分母、上限裁剪、容量缺失时的高分位代理</td></tr>
+        <tr><td class="n">时间</td><td>对齐与合法性</td><td>小时、分钟、sin-cos、昼夜 mask、本地时区、节假日</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="reveal">历史 PV：168 格窗口</h3>
+    <p class="reveal">一格一小时，7 × 24 = 168 格，正好等于 patch 数。夜间格在训练和评估里都要单独处理：真值接近 0，偏一点就让 MAPE 爆炸。</p>
+
+    <div class="toolbar reveal">
+      <button class="toggle" id="maskBtn" aria-pressed="false">夜间 mask：关</button>
+      <span style="font-size:var(--t5);color:var(--ink-2)">切到“开”，看夜间格被剔除后的样子</span>
+    </div>
+    <div class="g168 reveal" id="g168"></div>
+    <div class="keys reveal">
+      <span><i></i>白天，进主指标</span>
+      <span><i class="k2"></i>夜间，强制为 0</span>
+      <span><i class="k3"></i>mask 之后</span>
+    </div>
+
+    <div class="callout reveal">
+      <span class="h">为什么夜间不能算 MAPE</span>
+      夜间真实出力接近 0，预测偏 3 kW 就能让相对误差上百。所以主结论只看白天分桶，夜间只保证“输出接近 0”。
+    </div>
+
+    <h3 class="reveal">天气：6 个源 × 14 个变量</h3>
+    <p class="reveal">TFT 和 LightGBM 吃完整的 84 列。TimeXer 生产上常只用辐照类子集，书稿写的是 4 源，另有把 6 源接进去的新版本在并行。</p>
+
+    <div class="m84 reveal" id="m84"></div>
+    <div class="keys reveal" style="margin-top:12px">
+      <span><i style="background:#cfd9ea"></i>书稿点名的变量</span>
+      <span><i style="background:#edeeed"></i>书稿未列明</span>
+      <span><i style="background:#12161a"></i>顺序锁</span>
+    </div>
+
+    <div class="callout warn reveal">
+      <span class="h">换顺序不会报错，只会变钝</span>
+      84 列是平铺进网络的。变量顺序一变，模型照样跑，只是默默变差。所以“源、变量顺序、缺失填补”必须写进数据字典，而不是靠人记。
+    </div>
+
+    <h3 class="reveal">历史 PV：同刻七天 lag</h3>
+    <p class="reveal">树模型不看序列，得把“七天前这一刻发了多少”做成一行。注意是同小时同分钟，不是往前数 288 个点。</p>
+
+    <figure class="reveal">
+      <svg viewBox="0 0 1000 240" role="img" aria-label="同一时刻在七天里的切片构成 lag 特征">
+        <g font-size="12" fill="#4c5257">
+          <text x="0" y="16">t-7d</text><text x="0" y="46">t-6d</text><text x="0" y="76">t-5d</text>
+          <text x="0" y="106">t-4d</text><text x="0" y="136">t-3d</text><text x="0" y="166">t-2d</text>
+          <text x="0" y="196">t-1d</text>
+        </g>
+        <g fill="#cfd9ea">
+          <rect x="44" y="6" width="480" height="18"/><rect x="44" y="36" width="480" height="18"/>
+          <rect x="44" y="66" width="480" height="18"/><rect x="44" y="96" width="480" height="18"/>
+          <rect x="44" y="126" width="480" height="18"/><rect x="44" y="156" width="480" height="18"/>
+          <rect x="44" y="186" width="480" height="18"/>
+        </g>
+        <g fill="#16409e">
+          <rect x="330" y="6" width="12" height="18"/><rect x="330" y="36" width="12" height="18"/>
+          <rect x="330" y="66" width="12" height="18"/><rect x="330" y="96" width="12" height="18"/>
+          <rect x="330" y="126" width="12" height="18"/><rect x="330" y="156" width="12" height="18"/>
+          <rect x="330" y="186" width="12" height="18"/>
+        </g>
+        <text x="336" y="222" text-anchor="middle" font-size="12" font-weight="700" fill="#16409e">同一个 clock time</text>
+
+        <text x="570" y="16" font-size="12" fill="#4c5257">合成一行</text>
+        <g font-size="13" fill="#12161a">
+          <text x="570" y="42">lag_1d = 112.4</text>
+          <text x="570" y="64">lag_2d = 98.0</text>
+          <text x="570" y="86">lag_7d = 105.2</text>
+        </g>
+        <text x="570" y="118" font-size="12" fill="#4c5257">另外补：日能量、峰值、峰谷、稳定性</text>
+        <text x="570" y="140" font-size="12" fill="#4c5257">以及容量代理：历史最大、分位、晴天估计</text>
+        <text x="570" y="162" font-size="12" font-weight="700" fill="#16409e">以及缺失、异常、低发电三种标记</text>
+      </svg>
+      <figcaption>蓝色竖条是同一时刻在七天里的切片。它们和天气列拼在一起，才是 LightGBM 的一行。</figcaption>
+    </figure>
+
+    <h3 class="reveal">LightGBM：一个点一行，288 行</h3>
+    <p class="reveal">序列被拆成逐点回归。同一站点的 288 行共享历史特征，各自的未来天气和时间不同。训练与线上必须共用同一份 schema。</p>
+
+    <table class="reveal">
+      <caption>pointwise 特征表（分组为示意，书稿只给总数 259）</caption>
+      <thead><tr><th style="width:150px">分组</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td class="n">历史 PV</td><td>7 天同刻 lag、日能量、峰值、峰谷、容量代理、缺失与异常标记</td></tr>
+        <tr><td class="n">未来天气</td><td>84 列逐点展开、天气码统计、多源分歧（均值、最大值、离散度、排名）</td></tr>
+        <tr><td class="n">时间与站点</td><td>小时、分钟、sin-cos、昼夜 mask、站点画像、顺序锁与缺失填补</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="reveal">三套归一化，三处反变换</h3>
+    <p class="reveal">三个模型各用一套。任何一处忘了反变换，曲线就会变形，而且不报错。</p>
+
+    <table class="reveal">
+      <caption>归一化必须成对出现</caption>
+      <thead><tr><th style="width:120px">模型</th><th>做法</th><th>典型故障</th></tr></thead>
+      <tbody>
+        <tr><td class="n">TimeXer</td><td>每个样本 z-score，head 里乘回标准差再加均值</td><td>反变换只做了一半</td></tr>
+        <tr><td class="n">TFT v9</td><td>targetnorm，输出后反标准化</td><td>旧版没这条链，输出低幅值平顶</td></tr>
+        <tr><td class="n">LightGBM</td><td>按装机容量归一，在线输入 /100 对齐</td><td>把 /100 当成输出量纲</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="reveal">泄漏禁区</h3>
+    <p class="reveal">判断标准只有一条：在发起预测的那一刻，这个值拿得到吗？拿不到就不能进特征。</p>
+
+    <div class="two reveal">
+      <div>
+        <h4>禁止</h4>
+        <ul>
+          <li>预测窗口内的真实 PV</li>
+          <li>预测窗口内的天气实况</li>
+          <li>用标签统计出来的“未来同日信息”</li>
+          <li>未来修正后的天气预报</li>
+        </ul>
+      </div>
+      <div>
+        <h4>允许</h4>
+        <ul>
+          <li>发起预测时已发布的数值预报</li>
+          <li>截至 cutoff 的历史 PV</li>
+          <li>日历、经纬度、装机、画像</li>
+          <li>当天零点到 cutoff 的实发 PV，且只用于训练后处理</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="reveal">样本怎么切</h3>
+    <ul class="plain reveal">
+      <li><b>按时间切</b>训练、验证、测试。时序数据随机切等于泄漏。</li>
+      <li><b>按天气分桶采样</b>：晴天、多云、阴天、雨天、换季、高温、低温都要覆盖，否则模型没见过极端天。</li>
+      <li><b>平衡站点权重</b>：装机大的站样本多，容易让 loss 只优化少数国家。</li>
+      <li><b>夜间样本权重压低</b>：主损失用白天 mask，夜间只保留“趋近于 0”的约束。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 4 模型 ================= -->
+<section>
+  <div class="wrap">
+    <h2 class="reveal">三个模型是三种天气用法</h2>
+    <p class="lead reveal">它们不互相替代。TimeXer 学形状，TFT 学可信度，LightGBM 提供稳定对照。</p>
+
+    <div class="plate">
+      <header class="reveal">
+        <h4>TimeXer</h4>
+        <span class="meta">长历史 patch · 天气残差 · 逐时刻调制 · 输出 576</span>
+      </header>
+      <figure class="reveal">
+        <svg viewBox="0 0 1000 390" role="img" aria-label="TimeXer 结构">
+          <text x="0" y="12" font-size="12" fill="#4c5257">输入</text>
+          <rect x="0" y="22" width="200" height="40" fill="#dfe1e0"/>
+          <text x="14" y="47" font-size="13" font-weight="700">历史 PV　2016 点</text>
+          <rect x="210" y="22" width="200" height="40" fill="#dfe1e0"/>
+          <text x="224" y="47" font-size="13" font-weight="700">历史天气　168 小时</text>
+          <rect x="420" y="22" width="200" height="40" fill="#dfe1e0"/>
+          <text x="434" y="47" font-size="13" font-weight="700">未来天气　48 小时</text>
+
+          <rect x="0" y="84" width="200" height="118" fill="#edeeed"/>
+          <text x="14" y="106" font-size="13" font-weight="700">切成小时 patch</text>
+          <text x="14" y="128" font-size="12" fill="#4c5257">每样本 z-score</text>
+          <text x="14" y="148" font-size="12" fill="#4c5257">卷积核 12，步长 12</text>
+          <text x="14" y="168" font-size="12" fill="#4c5257">得到 168 个 token</text>
+          <text x="14" y="188" font-size="12" font-weight="700" fill="#16409e">pv_enc　[168, D]</text>
+
+          <rect x="210" y="84" width="200" height="118" fill="#edeeed"/>
+          <text x="224" y="106" font-size="13" font-weight="700">天气卷积</text>
+          <text x="224" y="128" font-size="12" fill="#4c5257">投影后多尺度卷积</text>
+          <text x="224" y="148" font-size="12" fill="#4c5257">加残差，保住局部形态</text>
+          <text x="224" y="168" font-size="12" fill="#4c5257">对齐到小时 token</text>
+          <text x="224" y="188" font-size="12" font-weight="700" fill="#16409e">weather_enc　[168, D]</text>
+
+          <rect x="420" y="84" width="200" height="118" fill="#edeeed"/>
+          <text x="434" y="106" font-size="13" font-weight="700">未来天气展开</text>
+          <text x="434" y="128" font-size="12" fill="#4c5257">小时级预报上采样</text>
+          <text x="434" y="148" font-size="12" fill="#4c5257">到 5 分钟粒度</text>
+          <text x="434" y="188" font-size="12" font-weight="700" fill="#16409e">条件　[576, D]</text>
+
+          <rect x="0" y="222" width="410" height="64" fill="#dfe1e0"/>
+          <text x="14" y="246" font-size="13" font-weight="700">拼接历史表示</text>
+          <text x="14" y="268" font-size="12" fill="#4c5257">加位置编码与一个全局 token，得到 169 个历史 token</text>
+
+          <rect x="420" y="222" width="200" height="64" fill="#cfd9ea"/>
+          <text x="434" y="246" font-size="13" font-weight="700" fill="#16409e">调制参数</text>
+          <text x="434" y="268" font-size="12" fill="#16409e">逐时刻的缩放与偏移</text>
+
+          <rect x="0" y="302" width="620" height="56" fill="#12161a"/>
+          <text x="14" y="324" font-size="13" font-weight="700" fill="#fff">编码器：先按天气逐时刻缩放历史表示，再做自注意力</text>
+          <text x="14" y="344" font-size="12" fill="#c9cbc7">天气不是一次性拼进去，而是每个时间步改写一次</text>
+
+          <text x="650" y="246" font-size="12" fill="#4c5257">输出 576 点</text>
+          <text x="650" y="266" font-size="12" fill="#4c5257">反归一化</text>
+          <text x="650" y="286" font-size="12" fill="#4c5257">非负截断</text>
+          <text x="650" y="306" font-size="12" fill="#4c5257">夜间置零</text>
+        </svg>
+        <figcaption>天气不参与全局注意力，只做局部残差和逐时刻调制。这是它和 TFT 最大的区别。</figcaption>
+      </figure>
+    </div>
+
+    <div class="plate">
+      <header class="reveal">
+        <h4>TFT v9</h4>
+        <span class="meta">来源注意力 · 当天天气背景 · 逐点输出 288</span>
+      </header>
+      <figure class="reveal">
+        <svg viewBox="0 0 1000 330" role="img" aria-label="TFT 的来源注意力结构">
+          <text x="0" y="12" font-size="12" fill="#4c5257">6 个天气源，每小时各给一套预报</text>
+
+          <g fill="#dfe1e0">
+            <rect x="0" y="24" width="120" height="32"/><rect x="128" y="24" width="120" height="32"/>
+            <rect x="256" y="24" width="120" height="32"/><rect x="384" y="24" width="120" height="32"/>
+            <rect x="512" y="24" width="120" height="32"/><rect x="640" y="24" width="120" height="32"/>
+          </g>
+          <g font-size="12" font-weight="700" fill="#4c5257" text-anchor="middle">
+            <text x="60" y="45">源 1</text><text x="188" y="45">源 2</text><text x="316" y="45">源 3</text>
+            <text x="444" y="45">源 4</text><text x="572" y="45">源 5</text><text x="700" y="45">源 6</text>
+          </g>
+
+          <rect x="0" y="80" width="760" height="42" fill="#cfd9ea"/>
+          <text x="14" y="106" font-size="13" font-weight="700" fill="#16409e">在这一小时里，给 6 个源打分并归一化</text>
+          <text x="470" y="106" font-size="12" fill="#16409e">权重随时间变化，不是固定偏好</text>
+
+          <rect x="0" y="138" width="760" height="42" fill="#dfe1e0"/>
+          <text x="14" y="164" font-size="13" font-weight="700">按权重融合成一个天气表示</text>
+          <text x="470" y="164" font-size="12" fill="#4c5257">哪家准就往哪偏</text>
+
+          <rect x="0" y="196" width="360" height="76" fill="#edeeed"/>
+          <text x="14" y="220" font-size="13" font-weight="700">历史记忆</text>
+          <text x="14" y="240" font-size="12" fill="#4c5257">历史 PV 编码 + 融合天气</text>
+          <text x="14" y="260" font-size="12" fill="#4c5257">再被当天背景门控一次</text>
+
+          <rect x="380" y="196" width="360" height="76" fill="#edeeed"/>
+          <text x="394" y="220" font-size="13" font-weight="700">未来查询</text>
+          <text x="394" y="240" font-size="12" fill="#4c5257">未来天气编码 + 时间位置</text>
+          <text x="394" y="260" font-size="12" fill="#4c5257">同样被当天背景门控</text>
+
+          <rect x="0" y="290" width="760" height="36" fill="#12161a"/>
+          <text x="14" y="313" font-size="12" font-weight="700" fill="#fff">五层解码器：未来每个点去历史里检索相似天气下的发电形态，再逐点输出</text>
+
+          <text x="790" y="220" font-size="12" fill="#4c5257">当天背景来自</text>
+          <text x="790" y="240" font-size="12" fill="#4c5257">PV 统计</text>
+          <text x="790" y="260" font-size="12" fill="#4c5257">天气摘要</text>
+          <text x="790" y="280" font-size="12" font-weight="700" fill="#16409e">源间分歧</text>
+        </svg>
+        <figcaption>把多源融合从特征工程搬进模型内部，用可学习的软权重代替人工选源。</figcaption>
+      </figure>
+
+      <div class="callout reveal">
+        <span class="h">为什么不能用硬门控</span>
+        离线时你知道哪个源事后最准，所以“先选源再预测”的分数会很好看。但预测时刻你并不知道。硬门控在离线刷分，上线就崩——书稿把这句写成了一条教训。
+      </div>
+    </div>
+
+    <div class="plate">
+      <header class="reveal">
+        <h4>LightGBM</h4>
+        <span class="meta">逐点回归 · 259 维 · 输出 288</span>
+      </header>
+      <figure class="reveal">
+        <svg viewBox="0 0 1000 260" role="img" aria-label="LightGBM 的逐点特征与树模型">
+          <rect x="0" y="14" width="230" height="70" fill="#edeeed"/>
+          <text x="14" y="38" font-size="13" font-weight="700">历史 PV</text>
+          <text x="14" y="58" font-size="12" fill="#4c5257">7 天同刻 lag</text>
+          <text x="14" y="76" font-size="12" fill="#4c5257">日能量、峰值、容量代理</text>
+
+          <rect x="240" y="14" width="230" height="70" fill="#edeeed"/>
+          <text x="254" y="38" font-size="13" font-weight="700">未来天气</text>
+          <text x="254" y="58" font-size="12" fill="#4c5257">84 列逐点展开</text>
+          <text x="254" y="76" font-size="12" fill="#4c5257">加多源分歧</text>
+
+          <rect x="480" y="14" width="230" height="70" fill="#edeeed"/>
+          <text x="494" y="38" font-size="13" font-weight="700">时间与站点</text>
+          <text x="494" y="58" font-size="12" fill="#4c5257">小时、sin-cos、昼夜</text>
+          <text x="494" y="76" font-size="12" fill="#4c5257">顺序锁、缺失填补</text>
+
+          <rect x="0" y="104" width="710" height="52" fill="#cfd9ea"/>
+          <text x="14" y="126" font-size="13" font-weight="700" fill="#16409e">每个站点天展开成 288 行特征卡</text>
+          <text x="14" y="146" font-size="12" fill="#16409e">同一份 schema，训练与线上共用</text>
+
+          <rect x="0" y="176" width="710" height="52" fill="#12161a"/>
+          <text x="14" y="198" font-size="13" font-weight="700" fill="#fff">一群决策树对每行投票，叶子分数累加</text>
+          <text x="14" y="218" font-size="12" fill="#c9cbc7">目标是装机归一化后的功率，不是原始功率</text>
+
+          <text x="740" y="126" font-size="12" fill="#4c5257">输出后仍要</text>
+          <text x="740" y="146" font-size="12" fill="#4c5257">按装机还原</text>
+          <text x="740" y="166" font-size="12" fill="#4c5257">夜间置零</text>
+          <text x="740" y="186" font-size="12" fill="#4c5257">非负截断</text>
+        </svg>
+        <figcaption>它不建模序列，用强特征把时序信息补回来，换来稳定、可解释、能回滚。</figcaption>
+      </figure>
+    </div>
+
+    <table class="reveal">
+      <caption>三模型对照</caption>
+      <thead><tr><th>维度</th><th>TimeXer</th><th>TFT v9</th><th>LightGBM</th></tr></thead>
+      <tbody>
+        <tr><td class="n">序列</td><td>patch + 自注意力</td><td>编码器 + 解码器</td><td>不建模，逐点</td></tr>
+        <tr><td class="n">天气</td><td>卷积残差 + 逐时刻调制</td><td>源级软权重</td><td>逐列展开 + 源间分歧</td></tr>
+        <tr><td class="n">兜住什么</td><td>日内形状</td><td>多源可信度</td><td>稳定性与可解释</td></tr>
+        <tr><td class="n">风险</td><td>4 源与 6 源并存</td><td>反变换、标记污染</td><td>特征顺序、量纲</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 5 天气 ================= -->
+<section>
+  <div class="wrap">
+    <h2 class="reveal">宁可整站不要结果，也不补一个格点</h2>
+    <p class="lead reveal">这是全书唯一一条硬性禁止。因为真的发生过：站点拿到了错误区域的天气预报，曲线和真实天气完全无关。</p>
+
+    <figure class="reveal">
+      <svg viewBox="0 0 1000 250" role="img" aria-label="精确格点缺失时的同步剔除">
+        <rect x="0" y="10" width="190" height="64" fill="#dfe1e0"/>
+        <text x="14" y="36" font-size="13" font-weight="700">站点</text>
+        <text x="14" y="56" font-size="12" fill="#4c5257">经纬度 + 时区 → 格点键</text>
+
+        <rect x="220" y="4" width="230" height="34" fill="#edeeed"/>
+        <text x="234" y="26" font-size="12" font-weight="700">命中：取 168 小时 + 未来两天</text>
+
+        <rect x="220" y="46" width="230" height="34" fill="#f7e6e2"/>
+        <text x="234" y="68" font-size="12" font-weight="700" fill="#8a2f1c">未命中：禁止找最近格点</text>
+
+        <rect x="480" y="26" width="250" height="76" fill="#f7e6e2"/>
+        <text x="494" y="50" font-size="13" font-weight="700" fill="#8a2f1c">四个数组一起删</text>
+        <text x="494" y="72" font-size="12" fill="#8a2f1c">站点、历史功率、天气、天数掩码</text>
+        <text x="494" y="92" font-size="12" fill="#8a2f1c">并记录缺失原因</text>
+
+        <text x="760" y="50" font-size="12" fill="#4c5257">四个数组按下标一一对应。</text>
+        <text x="760" y="70" font-size="12" fill="#4c5257">只删站点，其余三个整体错位，</text>
+        <text x="760" y="90" font-size="12" font-weight="700" fill="#8a2f1c">整批预测串味，而且不报错。</text>
+
+        <rect x="0" y="140" width="1000" height="42" fill="#edeeed"/>
+        <text x="14" y="167" font-size="12" fill="#4c5257">时间要对齐三件事：数据发生时间、入库时间、发起预测时间。训练样本只能用发起预测时已拿到的那部分。</text>
+
+        <rect x="0" y="196" width="1000" height="42" fill="#edeeed"/>
+        <text x="14" y="223" font-size="12" fill="#4c5257">天气还驱动三条规则：昼夜掩码、积雪名单、融雪判断。低发电不等于下雪，可能是故障、限发或遮挡。</text>
+      </svg>
+      <figcaption>缺天气的站点走兜底或下轮重试。缺一天数据远比错一片天气便宜。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= 6 选优 ================= -->
+<section>
+  <div class="wrap">
+    <h2 class="reveal">选优是滞后指标，坏站多半坏在这一层</h2>
+    <p class="lead reveal">它不是平均，也不是融合，而是按站点、按预测日分别挑近七天误差最小的那个。两天可以是不同模型。</p>
+
+    <div class="split">
+      <div>
+        <p class="reveal" style="font-size:var(--t2);font-weight:750;letter-spacing:-.02em;line-height:1.1">44.6%</p>
+        <p class="reveal">负荷侧一千个坏站的抽样里，接近一半的根因是选优与最终结果链路，而不是基础模型；另有四成是“基础模型达标、最终不达标”。PV 的选优逻辑与负荷同构，这组比例可以当量级参考，不能当 PV 的实测值。</p>
+        <p class="reveal">所以看到坏站，先回放选优过程：候选有没有进、点数够不够、最后是谁写的。去调模型往往是最慢的一条路。</p>
+      </div>
+      <table class="reveal">
+        <caption>四步</caption>
+        <thead><tr><th style="width:44px">步</th><th>动作</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1</td><td>读近七天的预测历史与真实功率</td></tr>
+          <tr><td class="n">2</td><td>两个预测日分别算候选误差</td></tr>
+          <tr><td class="n">3</td><td>过滤候选：历史天数不够、点数不足的不参选，完整日阈值约 276 点</td></tr>
+          <tr><td class="n">4</td><td>写最终结果、写缓存，并修正夏令时导致的点数变化</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn reveal">
+      <span class="h">三个已知弱点</span>
+      用过去七天选今天，天气类型切换那天必然选错；选错了不会报错，只会“结果不太准”；而且它可能被日内链路后写覆盖。日前排查优先看专门的日前结果表。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 7 评估 ================= -->
+<section>
+  <div class="wrap">
+    <h2 class="reveal">训练损失不能用来选模型</h2>
+    <p class="lead reveal">checkpoint 必须按最终口径的业务指标选。训练里的验证损失只能当参考。</p>
+
+    <div class="split flip">
+      <figure class="reveal">
+        <svg viewBox="0 0 560 190" role="img" aria-label="两天输出与有效点掩码">
+          <rect x="0" y="16" width="280" height="48" fill="#cfd9ea"/>
+          <text x="14" y="46" font-size="13" font-weight="700" fill="#16409e">第一天　288 点</text>
+          <rect x="280" y="16" width="280" height="48" fill="#e4e6e4"/>
+          <text x="294" y="46" font-size="13" fill="#7d848a">第二天　288 点</text>
+
+          <text x="0" y="96" font-size="12" font-weight="700" fill="#12161a">主指标只算第一天</text>
+          <text x="0" y="116" font-size="12" fill="#4c5257">第二天误差天然更大，混在一起会稀释结论。</text>
+
+          <g>
+            <rect x="0" y="134" width="20" height="16" fill="#1d242e"/>
+            <rect x="22" y="134" width="20" height="16" fill="#1d242e"/>
+            <rect x="44" y="134" width="20" height="16" fill="#cfd9ea"/>
+            <rect x="66" y="134" width="20" height="16" fill="#cfd9ea"/>
+            <rect x="88" y="134" width="20" height="16" fill="#cfd9ea"/>
+            <rect x="110" y="134" width="20" height="16" fill="#cfd9ea"/>
+            <rect x="132" y="134" width="20" height="16" fill="#cfd9ea"/>
+            <rect x="154" y="134" width="20" height="16" fill="#cfd9ea"/>
+            <rect x="176" y="134" width="20" height="16" fill="#1d242e"/>
+            <rect x="198" y="134" width="20" height="16" fill="#1d242e"/>
+          </g>
+          <text x="232" y="147" font-size="12" fill="#4c5257">夜间和缺失点不进指标</text>
+        </svg>
+        <figcaption>两个范围口径：只算第一天，只算有效点。否则夜间置零会把分数刷高。</figcaption>
+      </figure>
+
+      <div>
+        <p class="reveal">必须保存预测资产：预测数组、真实数组、指标掩码。没有这三样，任何一个 bad case 都只能重跑。</p>
+        <p class="reveal">指标要成族看，否则很容易用一处改善换另一处恶化：绝对误差、相对误差、日电量偏差、正负偏差。只报一个相对指标，看不出“总量对、峰值错”。</p>
+        <p class="reveal">分桶是硬要求：国家、气候带、装机容量、天气类型、预测步长、白天黑夜。只有全量均值，等于什么都没说。</p>
+      </div>
+    </div>
+
+    <table class="reveal">
+      <caption>指标族</caption>
+      <thead><tr><th style="width:140px">类别</th><th>内容</th><th>看什么</th></tr></thead>
+      <tbody>
+        <tr><td class="n">精度</td><td>平均绝对误差、均方根误差</td><td>基础拟合</td></tr>
+        <tr><td class="n">相对精度</td><td>两个准确率类指标</td><td>书稿未给公式，以代码为准</td></tr>
+        <tr><td class="n">能量</td><td>日电量误差与偏置</td><td>防“逐点对、总量错”</td></tr>
+        <tr><td class="n">偏差</td><td>正负偏差</td><td>防系统性高估或低估</td></tr>
+        <tr><td class="n">资产</td><td>预测、真实、掩码三个数组</td><td>没有它，复盘只能重跑</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 8 排查 ================= -->
+<section>
+  <div class="wrap">
+    <h2 class="reveal">先查天气和量纲，再谈模型</h2>
+    <p class="lead reveal">五种现象，五个不一样的第一个动作。按这个顺序走，能省掉大半白工。</p>
+
+    <table class="reveal">
+      <caption>现象与第一个该看的地方</caption>
+      <thead><tr><th style="width:240px">现象</th><th>先查</th><th style="width:150px">别急着做</th></tr></thead>
+      <tbody>
+        <tr><td>曲线和真实天气完全对不上</td><td>格点、经纬度、时区</td><td>改模型结构</td></tr>
+        <tr><td>形状对，整体偏高或偏低</td><td>量纲、反变换、装机容量</td><td>加训练轮次</td></tr>
+        <tr><td>中午出现平台或明显低估</td><td>逆变器限发、限发修正链路、站点工作模式</td><td>改损失函数</td></tr>
+        <tr><td>雪天虚高、雪后一直压低</td><td>积雪名单、压低比例、名单有效期</td><td>怪模型</td></tr>
+        <tr><td>基础模型好、最终结果差</td><td>选优候选、覆盖顺序、写库</td><td>换模型</td></tr>
+      </tbody>
+    </table>
+
+    <div class="two reveal" style="margin-top:40px">
+      <div>
+        <h4>已经证伪的路</h4>
+        <ul>
+          <li>通用时序大模型没有天气输入，光伏上限很低</li>
+          <li>先选源再预测的硬门控，离线好看、上线崩</li>
+          <li>没有合法同分布验证集时，继续训模型只是空转</li>
+          <li>把五分钟序列切成大 patch 再补回来，形状补不回</li>
+        </ul>
+      </div>
+      <div>
+        <h4>已经验证的路</h4>
+        <ul>
+          <li>源级软注意力配当天天气背景，是正向收益</li>
+          <li>目标标准化修好了旧模型的低幅值平顶</li>
+          <li>逐点树模型是深度模型的稳定对照</li>
+          <li>保存预测、真实、掩码三个数组，让复盘成本降一个数量级</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="big reveal">一条链、三个模型、四次覆盖。</p>
+    <p class="fine">
+      来源：sigen-ai-book 的 PV 预测章节与算法平台架构章节，以及四张模型架构图。本页是对书稿的可视化重述。<br>
+      图中数值、色块宽度、格子亮度均为示意，只表达结构与口径，不代表真实数据。书稿未列明的信息（十四个变量的全称、二百五十九维的分组维数、六个天气源的名称）未作杜撰。<br>
+      已知口径冲突三处：TimeXer 四源与六源并存；未来天气的粒度同时写作两百八十八点与四十八小时；TFT 输出为单日而链路需要两日。
+    </p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- 运动 ---------- */
+  var els = [].slice.call(document.querySelectorAll(".reveal"));
+  if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
+    els.forEach(function(el){ io.observe(el); });
+  } else {
+    els.forEach(function(el){ el.classList.add("in"); });
+  }
+
+  /* ---------- 一天：点击时刻看当时跑什么 ---------- */
+  var RUNS = [
+    { t:"01:15", title:"01:15　记录基准", body:"记录近四十五天的历史最大功率，给积雪和融雪规则当分母。这一刻没有模型推理。", tag:"基准数据", over:false },
+    { t:"19:15", title:"19:15　常规日前", body:"三个模型加规则兜底各写一条曲线，再由选优挑一条。这是一天里唯一一次“选”，后面全是“改”。", tag:"写入基础结果", over:false },
+    { t:"20:45", title:"20:45　识别积雪名单", body:"用天气码、历史最大功率、当天实发功率一起判断。低功率也可能是故障、限发或遮挡，不能只看一条。", tag:"产出名单", over:false },
+    { t:"22:05", title:"22:05　限发覆盖", body:"用限发修正后的历史片段重跑长历史模型，再直接改写最终结果。它不参加常规选优排名。", tag:"覆盖最终结果", over:true },
+    { t:"22:25", title:"22:25　单源补充", body:"只走单一数据源的站点，在这一步补一条单独的覆盖结果。工作模式填错的站点会被这一步漏掉。", tag:"覆盖最终结果", over:true },
+    { t:"22:55", title:"22:55　积雪压低", body:"把积雪站的曲线压到历史最大功率的一小部分。比例写在代码里，注释和实现不一致时以实现为准。", tag:"覆盖最终结果", over:true },
+    { t:"23:15", title:"23:15　融雪重预测", body:"挑七个好天气历史日重构历史输入，再跑一次模型。名单有有效期，过期会污染第二天的判断。", tag:"覆盖最终结果", over:true },
+    { t:"11:25", title:"11:25　日内刷新", body:"换当天最新的数值预报重跑三个模型。必须写独立的标记，否则选优读到的历史会被日内结果顶掉。", tag:"独立标记", over:false }
+  ];
+
+  var dayList = document.getElementById("day");
+  var stage = document.getElementById("stage");
+
+  function render(i){
+    var r = RUNS[i];
+    stage.innerHTML = '<div class="t">' + r.title + '</div><p>' + r.body + '</p>' +
+      '<span class="tag' + (r.over ? " over" : "") + '">' + r.tag + '</span>';
+  }
+
+  if (dayList && stage){
+    RUNS.forEach(function(r, i){
+      var li = document.createElement("li");
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = r.t;
+      b.setAttribute("aria-pressed", i === 1 ? "true" : "false");
+      b.addEventListener("click", function(){
+        [].slice.call(dayList.querySelectorAll("button")).forEach(function(x){
+          x.setAttribute("aria-pressed", "false");
+        });
+        b.setAttribute("aria-pressed", "true");
+        render(i);
+      });
+      li.appendChild(b);
+      dayList.appendChild(li);
+    });
+  }
+
+  /* ---------- 168 格 ---------- */
+  var g = document.getElementById("g168");
+  if (g){
+    var frag = document.createDocumentFragment();
+    var corner = document.createElement("div");
+    corner.className = "rl";
+    corner.textContent = "";
+    frag.appendChild(corner);
+    for (var h = 0; h < 24; h++){
+      var cl = document.createElement("div");
+      cl.className = "cl";
+      cl.textContent = h;
+      frag.appendChild(cl);
+    }
+    for (var d = 0; d < 7; d++){
+      var lab = document.createElement("div");
+      lab.className = "rl";
+      lab.textContent = "D-" + (6 - d);
+      frag.appendChild(lab);
+      for (var hh = 0; hh < 24; hh++){
+        var c = document.createElement("div");
+        var night = (hh <= 5 || hh >= 20);
+        c.className = "c" + (night ? " night" : "");
+        c.title = "D-" + (6 - d) + " " + (hh < 10 ? "0" + hh : hh) + ":00　" +
+                  (night ? "夜间，输出强制为 0" : "白天，进主指标") + "　12 个五分钟点 = 1 个 patch";
+        frag.appendChild(c);
+      }
+    }
+    g.appendChild(frag);
+  }
+
+  var mb = document.getElementById("maskBtn");
+  if (mb && g){
+    mb.addEventListener("click", function(){
+      var next = mb.getAttribute("aria-pressed") !== "true";
+      mb.setAttribute("aria-pressed", String(next));
+      mb.textContent = "夜间 mask：" + (next ? "开" : "关");
+      g.classList.toggle("masked", next);
+    });
+  }
+
+  /* ---------- 6 × 14 矩阵 ---------- */
+  var m = document.getElementById("m84");
+  if (m){
+    var vars = ["GHI","DNI","温度","风速","降水","云量","天气码","","","","","","",""];
+    var named = 7;
+    var f2 = document.createDocumentFragment();
+
+    var blank = document.createElement("div");
+    f2.appendChild(blank);
+
+    vars.forEach(function(v, i){
+      var vh = document.createElement("div");
+      vh.className = "vh";
+      if (v){
+        vh.textContent = v;
+      } else {
+        vh.innerHTML = "—<em>未列明</em>";
+      }
+      f2.appendChild(vh);
+    });
+
+    for (var s = 0; s < 6; s++){
+      var src = document.createElement("div");
+      src.className = "src";
+      src.textContent = "源 " + (s + 1);
+      f2.appendChild(src);
+      for (var v2 = 0; v2 < 14; v2++){
+        var cell = document.createElement("div");
+        cell.className = "cell" + (v2 < named ? " on" : "") + (v2 === 0 ? " lock" : "");
+        cell.textContent = v2 < named ? "●" : "";
+        cell.title = "源 " + (s + 1) + " 的第 " + (v2 + 1) + " 列" +
+                     (v2 < named ? "（" + vars[v2] + "）" : "（书稿未列明）") +
+                     "　平铺序号 " + (s * 14 + v2) + "，顺序必须与训练一致";
+        f2.appendChild(cell);
+      }
+    }
+    m.appendChild(f2);
+  }
+
+  /* ---------- 压缩后的 168 格（示意图） ---------- */
+  var pg = document.getElementById("pg");
+  if (pg){
+    var NS = "http://www.w3.org/2000/svg";
+    var x0 = 470, y0 = 26, w = 8, hgt = 8, gap = 2;
+    for (var r = 0; r < 7; r++){
+      for (var c2 = 0; c2 < 24; c2++){
+        var rect = document.createElementNS(NS, "rect");
+        rect.setAttribute("x", x0 + c2 * (w + gap));
+        rect.setAttribute("y", y0 + r * (hgt + gap));
+        rect.setAttribute("width", w);
+        rect.setAttribute("height", hgt);
+        rect.setAttribute("fill", (c2 <= 5 || c2 >= 20) ? "#1d242e" : "#cfd9ea");
+        pg.appendChild(rect);
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
