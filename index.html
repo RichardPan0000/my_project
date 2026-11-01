@@ -594,11 +594,11 @@
           <p class="lead">结论：LOAD 的 API call 只触发任务。算法服务内部查站点、算本地日期、批量推理，结果继续写 Kafka / Redis / DB。</p>
           <div class="figure">
             <div class="figure-title">LOAD 业务架构图</div>
-            <img class="arch-img" src="assets/images/load-business-architecture.svg" alt="LOAD 预测业务架构图">
+            <div style="overflow-x:auto;max-width:900px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-label="LOAD 异步预测 · 按本页文字整理" style="display:block;width:100%;height:auto;font-family:Microsoft YaHei,Segoe UI,sans-serif"><title>LOAD 异步预测 · 按本页文字整理</title><text x="24" y="30" font-size="22" fill="#202b36" text-anchor="start">LOAD 异步预测 · 按本页文字整理</text><rect x="24" y="58" width="752" height="66" fill="#edf2f8"/><text x="44" y="85" font-size="19" fill="#202b36" text-anchor="start">任务入口</text><text x="44" y="109" font-size="15" fill="#4c5d6d" text-anchor="start">POST /load_prediction_station · station_id；旧节假日入口保留独立语义</text><text x="400" y="143" font-size="21" fill="#16409e" text-anchor="middle">↓</text><rect x="24" y="148" width="752" height="66" fill="#e2eaf4"/><text x="44" y="175" font-size="19" fill="#202b36" text-anchor="start">算法服务准备数据</text><text x="44" y="199" font-size="15" fill="#4c5d6d" text-anchor="start">查询站点、本地日期、历史负荷、日历及节假日</text><text x="400" y="233" font-size="21" fill="#16409e" text-anchor="middle">↓</text><rect x="24" y="238" width="752" height="66" fill="#edf2f8"/><text x="44" y="265" font-size="19" fill="#202b36" text-anchor="start">批量预测</text><text x="44" y="289" font-size="15" fill="#4c5d6d" text-anchor="start">DLinear / TimeXer 加模型锁；XGBoost 权重失败时本地 fallback</text><text x="400" y="323" font-size="21" fill="#16409e" text-anchor="middle">↓</text><rect x="24" y="328" width="752" height="66" fill="#e2eaf4"/><text x="44" y="355" font-size="19" fill="#202b36" text-anchor="start">选优与兜底</text><text x="44" y="379" font-size="15" fill="#4c5d6d" text-anchor="start">基础预测 → 选优 / fallback → 最终结果</text><text x="400" y="413" font-size="21" fill="#16409e" text-anchor="middle">↓</text><rect x="24" y="418" width="752" height="66" fill="#edf2f8"/><text x="44" y="445" font-size="19" fill="#202b36" text-anchor="start">异步输出</text><text x="44" y="469" font-size="15" fill="#4c5d6d" text-anchor="start">Kafka / Redis / DB；写入失败重试与追踪</text></svg></div>
           </div>
           <p>新入口是 <code>POST /load_prediction_station</code>，只传 <code>station_id</code>。旧的 <code>/load_prediction_holiday</code> 保留节假日语义，不要混成通用预测入口。</p>
           <div class="page-actions">
-            <a href="assets/images/load-business-architecture.svg">打开 LOAD 业务架构图</a>
+            <span>图示已内嵌，可离线阅读；表示业务主线。</span>
           </div>
         </article>
 
@@ -788,11 +788,11 @@
           <p class="lead">结论：PV 新增 <code>POST /pv_prediction_station</code> 后，入口多了 API call，但预测结果仍走异步生产链路。</p>
           <div class="figure">
             <div class="figure-title">PV 业务架构图</div>
-            <img class="arch-img" src="assets/images/pv-business-architecture.svg" alt="PV 预测业务架构图">
+            <div style="overflow-x:auto;max-width:900px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-label="PV 业务主线 · 按本页文字整理" style="display:block;width:100%;height:auto;font-family:Microsoft YaHei,Segoe UI,sans-serif"><title>PV 业务主线 · 按本页文字整理</title><text x="24" y="30" font-size="22" fill="#202b36" text-anchor="start">PV 业务主线 · 按本页文字整理</text><rect x="24" y="58" width="752" height="66" fill="#edf2f8"/><text x="44" y="85" font-size="19" fill="#202b36" text-anchor="start">任务入口</text><text x="44" y="109" font-size="15" fill="#4c5d6d" text-anchor="start">POST /pv_prediction_station · station_id + 定时调度</text><text x="400" y="143" font-size="21" fill="#16409e" text-anchor="middle">↓</text><rect x="24" y="148" width="752" height="66" fill="#e2eaf4"/><text x="44" y="175" font-size="19" fill="#202b36" text-anchor="start">数据与输入对齐</text><text x="44" y="199" font-size="15" fill="#4c5d6d" text-anchor="start">历史 PV + 多源 NWP + 本地日期；缺失站点同步剔除</text><text x="400" y="233" font-size="21" fill="#16409e" text-anchor="middle">↓</text><rect x="24" y="238" width="752" height="66" fill="#edf2f8"/><text x="44" y="265" font-size="19" fill="#202b36" text-anchor="start">三路基础预测</text><text x="44" y="289" font-size="15" fill="#4c5d6d" text-anchor="start">TimeXer / TFT / LightGBM 各自生成基础预测</text><text x="400" y="323" font-size="21" fill="#16409e" text-anchor="middle">↓</text><rect x="24" y="328" width="752" height="66" fill="#e2eaf4"/><text x="44" y="355" font-size="19" fill="#202b36" text-anchor="start">日前选优</text><text x="44" y="379" font-size="15" fill="#4c5d6d" text-anchor="start">近 7 天历史表现 → select_best_7；D1 / D2 分开选</text><text x="400" y="413" font-size="21" fill="#16409e" text-anchor="middle">↓</text><rect x="24" y="418" width="752" height="66" fill="#edf2f8"/><text x="44" y="445" font-size="19" fill="#202b36" text-anchor="start">覆盖与最终输出</text><text x="44" y="469" font-size="15" fill="#4c5d6d" text-anchor="start">积雪 / 融雪、clipping、EC 等覆盖路径；Kafka / Redis 输出</text></svg></div>
           </div>
           <p>API 只传 <code>station_id</code>，算法服务自己查站点、天气和本地日期。排查时先问：当前结果是基础模型、日前最终值，还是被日内/特殊覆盖后写掉的 <code>select_best_7</code>。</p>
           <div class="page-actions">
-            <a href="assets/images/pv-business-architecture.svg">打开 PV 业务架构图</a>
+            <span>图示已内嵌，可离线阅读；表示业务主线。</span>
           </div>
         </article>
 
@@ -852,11 +852,56 @@
           <p class="lead">结论：TimeXer 把过去 7 天切成小时 patch，再用天气和时间修正预测。</p>
           <div class="figure">
             <div class="figure-title">TimeXer 详细架构图</div>
-            <img class="arch-img" src="assets/images/pv-timexer-architecture.svg" alt="TimeXer PV day-ahead 详细架构图">
+            <div style="overflow-x:auto"><svg style="display:block;width:100%;min-width:780px;height:auto" viewBox="0 0 1000 390" role="img" aria-label="TimeXer 结构">
+          <text x="0" y="12" font-size="12" fill="#4c5257">输入</text>
+          <rect x="0" y="22" width="200" height="40" fill="#dfe1e0"/>
+          <text x="14" y="47" font-size="13" font-weight="700">历史 PV　2016 点</text>
+          <rect x="210" y="22" width="200" height="40" fill="#dfe1e0"/>
+          <text x="224" y="47" font-size="13" font-weight="700">历史天气　168 小时</text>
+          <rect x="420" y="22" width="200" height="40" fill="#dfe1e0"/>
+          <text x="434" y="47" font-size="13" font-weight="700">未来天气　48 小时</text>
+
+          <rect x="0" y="84" width="200" height="118" fill="#edeeed"/>
+          <text x="14" y="106" font-size="13" font-weight="700">切成小时 patch</text>
+          <text x="14" y="128" font-size="12" fill="#4c5257">每样本 z-score</text>
+          <text x="14" y="148" font-size="12" fill="#4c5257">卷积核 12，步长 12</text>
+          <text x="14" y="168" font-size="12" fill="#4c5257">得到 168 个 token</text>
+          <text x="14" y="188" font-size="12" font-weight="700" fill="#16409e">pv_enc　[168, D]</text>
+
+          <rect x="210" y="84" width="200" height="118" fill="#edeeed"/>
+          <text x="224" y="106" font-size="13" font-weight="700">天气卷积</text>
+          <text x="224" y="128" font-size="12" fill="#4c5257">投影后多尺度卷积</text>
+          <text x="224" y="148" font-size="12" fill="#4c5257">加残差，保住局部形态</text>
+          <text x="224" y="168" font-size="12" fill="#4c5257">对齐到小时 token</text>
+          <text x="224" y="188" font-size="12" font-weight="700" fill="#16409e">weather_enc　[168, D]</text>
+
+          <rect x="420" y="84" width="200" height="118" fill="#edeeed"/>
+          <text x="434" y="106" font-size="13" font-weight="700">未来天气展开</text>
+          <text x="434" y="128" font-size="12" fill="#4c5257">小时级预报上采样</text>
+          <text x="434" y="148" font-size="12" fill="#4c5257">到 5 分钟粒度</text>
+          <text x="434" y="188" font-size="12" font-weight="700" fill="#16409e">条件　[576, D]</text>
+
+          <rect x="0" y="222" width="410" height="64" fill="#dfe1e0"/>
+          <text x="14" y="246" font-size="13" font-weight="700">拼接历史表示</text>
+          <text x="14" y="268" font-size="12" fill="#4c5257">加位置编码与一个全局 token，得到 169 个历史 token</text>
+
+          <rect x="420" y="222" width="200" height="64" fill="#cfd9ea"/>
+          <text x="434" y="246" font-size="13" font-weight="700" fill="#16409e">调制参数</text>
+          <text x="434" y="268" font-size="12" fill="#16409e">逐时刻的缩放与偏移</text>
+
+          <rect x="0" y="302" width="620" height="56" fill="#12161a"/>
+          <text x="14" y="324" font-size="13" font-weight="700" fill="#fff">编码器：先按天气逐时刻缩放历史表示，再做自注意力</text>
+          <text x="14" y="344" font-size="12" fill="#c9cbc7">天气不是一次性拼进去，而是每个时间步改写一次</text>
+
+          <text x="650" y="246" font-size="12" fill="#4c5257">输出 576 点</text>
+          <text x="650" y="266" font-size="12" fill="#4c5257">反归一化</text>
+          <text x="650" y="286" font-size="12" fill="#4c5257">非负截断</text>
+          <text x="650" y="306" font-size="12" fill="#4c5257">夜间置零</text>
+        </svg></div><p>复用《PV 预测架构》中的模型说明图。</p>
           </div>
           <p>强项：容量高，能吃长历史和未来天气。风险：输入口径一变，生产代码不能硬加载旧模型结构。</p>
           <div class="page-actions">
-            <a href="assets/images/pv-timexer-architecture.svg">打开 TimeXer 大图</a>
+            <a href="pv-forecast 架构.html">查看模型架构详解</a>
           </div>
         </article>
 
@@ -866,11 +911,49 @@
           <p class="lead">结论：TFT v9 的核心是 source attention、sample context 和历史 PV 连续性增强。</p>
           <div class="figure">
             <div class="figure-title">TFT v9 详细架构图</div>
-            <img class="arch-img" src="assets/images/pv-tft-v9-architecture.svg" alt="TFT v9 PV day-ahead 详细架构图">
+            <div style="overflow-x:auto"><svg style="display:block;width:100%;min-width:780px;height:auto" viewBox="0 0 1000 330" role="img" aria-label="TFT 的来源注意力结构">
+          <text x="0" y="12" font-size="12" fill="#4c5257">6 个天气源，每小时各给一套预报</text>
+
+          <g fill="#dfe1e0">
+            <rect x="0" y="24" width="120" height="32"/><rect x="128" y="24" width="120" height="32"/>
+            <rect x="256" y="24" width="120" height="32"/><rect x="384" y="24" width="120" height="32"/>
+            <rect x="512" y="24" width="120" height="32"/><rect x="640" y="24" width="120" height="32"/>
+          </g>
+          <g font-size="12" font-weight="700" fill="#4c5257" text-anchor="middle">
+            <text x="60" y="45">源 1</text><text x="188" y="45">源 2</text><text x="316" y="45">源 3</text>
+            <text x="444" y="45">源 4</text><text x="572" y="45">源 5</text><text x="700" y="45">源 6</text>
+          </g>
+
+          <rect x="0" y="80" width="760" height="42" fill="#cfd9ea"/>
+          <text x="14" y="106" font-size="13" font-weight="700" fill="#16409e">在这一小时里，给 6 个源打分并归一化</text>
+          <text x="470" y="106" font-size="12" fill="#16409e">权重随时间变化，不是固定偏好</text>
+
+          <rect x="0" y="138" width="760" height="42" fill="#dfe1e0"/>
+          <text x="14" y="164" font-size="13" font-weight="700">按权重融合成一个天气表示</text>
+          <text x="470" y="164" font-size="12" fill="#4c5257">哪家准就往哪偏</text>
+
+          <rect x="0" y="196" width="360" height="76" fill="#edeeed"/>
+          <text x="14" y="220" font-size="13" font-weight="700">历史记忆</text>
+          <text x="14" y="240" font-size="12" fill="#4c5257">历史 PV 编码 + 融合天气</text>
+          <text x="14" y="260" font-size="12" fill="#4c5257">再被当天背景门控一次</text>
+
+          <rect x="380" y="196" width="360" height="76" fill="#edeeed"/>
+          <text x="394" y="220" font-size="13" font-weight="700">未来查询</text>
+          <text x="394" y="240" font-size="12" fill="#4c5257">未来天气编码 + 时间位置</text>
+          <text x="394" y="260" font-size="12" fill="#4c5257">同样被当天背景门控</text>
+
+          <rect x="0" y="290" width="760" height="36" fill="#12161a"/>
+          <text x="14" y="313" font-size="12" font-weight="700" fill="#fff">五层解码器：未来每个点去历史里检索相似天气下的发电形态，再逐点输出</text>
+
+          <text x="790" y="220" font-size="12" fill="#4c5257">当天背景来自</text>
+          <text x="790" y="240" font-size="12" fill="#4c5257">PV 统计</text>
+          <text x="790" y="260" font-size="12" fill="#4c5257">天气摘要</text>
+          <text x="790" y="280" font-size="12" font-weight="700" fill="#16409e">源间分歧</text>
+        </svg></div><p>复用《PV 预测架构》中的模型说明图。</p>
           </div>
           <p>已证明的正向路线：source-attention + weather summary sample context；历史 PV patch 后加轻量 RNN 有小收益。</p>
           <div class="page-actions">
-            <a href="assets/images/pv-tft-v9-architecture.svg">打开 TFT v9 大图</a>
+            <a href="pv-forecast 架构.html">查看模型架构详解</a>
           </div>
         </article>
 
@@ -880,11 +963,39 @@
           <p class="lead">结论：LightGBM 是 pointwise 模型，用强特征兜住稳定性和解释性。</p>
           <div class="figure">
             <div class="figure-title">LightGBM 详细架构图</div>
-            <img class="arch-img" src="assets/images/pv-lgbm-architecture.svg" alt="LightGBM PV day-ahead 详细架构图">
+            <div style="overflow-x:auto"><svg style="display:block;width:100%;min-width:780px;height:auto" viewBox="0 0 1000 260" role="img" aria-label="LightGBM 的逐点特征与树模型">
+          <rect x="0" y="14" width="230" height="70" fill="#edeeed"/>
+          <text x="14" y="38" font-size="13" font-weight="700">历史 PV</text>
+          <text x="14" y="58" font-size="12" fill="#4c5257">7 天同刻 lag</text>
+          <text x="14" y="76" font-size="12" fill="#4c5257">日能量、峰值、容量代理</text>
+
+          <rect x="240" y="14" width="230" height="70" fill="#edeeed"/>
+          <text x="254" y="38" font-size="13" font-weight="700">未来天气</text>
+          <text x="254" y="58" font-size="12" fill="#4c5257">84 列逐点展开</text>
+          <text x="254" y="76" font-size="12" fill="#4c5257">加多源分歧</text>
+
+          <rect x="480" y="14" width="230" height="70" fill="#edeeed"/>
+          <text x="494" y="38" font-size="13" font-weight="700">时间与站点</text>
+          <text x="494" y="58" font-size="12" fill="#4c5257">小时、sin-cos、昼夜</text>
+          <text x="494" y="76" font-size="12" fill="#4c5257">顺序锁、缺失填补</text>
+
+          <rect x="0" y="104" width="710" height="52" fill="#cfd9ea"/>
+          <text x="14" y="126" font-size="13" font-weight="700" fill="#16409e">每个站点天展开成 288 行特征卡</text>
+          <text x="14" y="146" font-size="12" fill="#16409e">同一份 schema，训练与线上共用</text>
+
+          <rect x="0" y="176" width="710" height="52" fill="#12161a"/>
+          <text x="14" y="198" font-size="13" font-weight="700" fill="#fff">一群决策树对每行投票，叶子分数累加</text>
+          <text x="14" y="218" font-size="12" fill="#c9cbc7">目标是装机归一化后的功率，不是原始功率</text>
+
+          <text x="740" y="126" font-size="12" fill="#4c5257">输出后仍要</text>
+          <text x="740" y="146" font-size="12" fill="#4c5257">按装机还原</text>
+          <text x="740" y="166" font-size="12" fill="#4c5257">夜间置零</text>
+          <text x="740" y="186" font-size="12" fill="#4c5257">非负截断</text>
+        </svg></div><p>复用《PV 预测架构》中的模型说明图。</p>
           </div>
           <p>硬要求：线上特征顺序必须和训练 booster 完全一致；`/100` 是对齐训练量纲，不是 Kafka 输出量纲。</p>
           <div class="page-actions">
-            <a href="assets/images/pv-lgbm-architecture.svg">打开 LightGBM 大图</a>
+            <a href="pv-forecast 架构.html">查看模型架构详解</a>
           </div>
         </article>
 
@@ -892,9 +1003,9 @@
           <div class="kicker">2.4.4 / PV预测 / 三模型架构 / 参考图</div>
           <h2>2.4.4 TFT v5 图作为画图标准</h2>
           <p class="lead">结论：后续模型图按这个风格画。输入、编码、解码、输出分区清楚，颜色区分模块，主线不交叉。</p>
-          <img class="arch-img" src="assets/images/tft-v5.png" alt="TFT v5 allweather 架构图">
+          <div class="note">原始 TFT v5 allweather 参考图未随仓库提供，现有文字不足以还原其结构。可先阅读相邻的 TFT v9 图；两个版本不能视为同一架构。</div>
           <div class="page-actions">
-            <a href="assets/images/tft-v5.png">打开参考图</a>
+            <a href="#pv-tft">查看已有 TFT v9 图</a>
           </div>
         </article>
 
